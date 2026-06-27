@@ -5,55 +5,50 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-type Tier = "개인회원" | "협력사회원" | "기업회원";
-
-const TIERS: { value: Tier; label: string; desc: string }[] = [
-  { value: "개인회원", label: "개인 라이더", desc: "협력사 미소속 (누구나 가입)" },
-  { value: "협력사회원", label: "협력사 라이더", desc: "협력사 소속 라이더" },
-  { value: "기업회원", label: "기업/협력사", desc: "업체 계정" },
-];
-
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [tier, setTier] = useState<Tier>("개인회원");
-  const [company, setCompany] = useState("");
+  const [password2, setPassword2] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<null | "session" | "confirm">(null);
+  const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const needCompany = tier !== "개인회원";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (password !== password2) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
+
     setLoading(true);
     const supabase = createClient();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { name, tier, company: needCompany ? company : "" },
-      },
+      options: { data: { name } }, // 등급은 기본 개인회원(관리자가 추후 지정)
     });
     setLoading(false);
     if (error) {
       setError(error.message);
       return;
     }
-    // 이메일 확인 꺼져있으면 바로 세션 생성됨 → 홈으로
     if (data.session) {
-      setDone("session");
       router.push("/");
       router.refresh();
     } else {
-      setDone("confirm"); // 확인 메일 발송된 경우
+      setDone(true); // 이메일 확인 필요
     }
   }
 
-  if (done === "confirm") {
+  if (done) {
     return (
       <div className="flex min-h-full flex-col items-center justify-center gap-3 px-6 text-center">
         <div className="text-4xl">📬</div>
@@ -80,27 +75,6 @@ export default function SignupPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
-        {/* 회원 등급 선택 */}
-        <div className="grid grid-cols-3 gap-2">
-          {TIERS.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setTier(t.value)}
-              className={`rounded-xl border px-2 py-2.5 text-center transition ${
-                tier === t.value
-                  ? "border-blue-600 bg-blue-50 text-blue-700"
-                  : "border-slate-200 bg-white text-slate-500"
-              }`}
-            >
-              <div className="text-xs font-bold">{t.label}</div>
-            </button>
-          ))}
-        </div>
-        <p className="px-1 text-[11px] text-slate-400">
-          {TIERS.find((t) => t.value === tier)?.desc}
-        </p>
-
         <input
           required
           placeholder="이름 / 닉네임"
@@ -108,15 +82,6 @@ export default function SignupPage() {
           onChange={(e) => setName(e.target.value)}
           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
         />
-        {needCompany && (
-          <input
-            required
-            placeholder="소속 협력사 / 업체명"
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
-          />
-        )}
         <input
           type="email"
           required
@@ -134,6 +99,21 @@ export default function SignupPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
         />
+        <input
+          type="password"
+          required
+          placeholder="비밀번호 확인"
+          value={password2}
+          onChange={(e) => setPassword2(e.target.value)}
+          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 ${
+            password2 && password !== password2
+              ? "border-rose-400"
+              : "border-slate-200"
+          }`}
+        />
+        {password2 && password !== password2 && (
+          <p className="px-1 text-xs text-rose-500">비밀번호가 일치하지 않아요.</p>
+        )}
 
         {error && (
           <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-600">
