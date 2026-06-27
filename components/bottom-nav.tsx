@@ -92,6 +92,9 @@ const tabs = [
 const HIDDEN_ON = [
   "/login",
   "/signup",
+  "/forgot",
+  "/reset",
+  "/profile/password",
   "/compose",
   "/shorts/new",
   "/create",

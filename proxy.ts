@@ -34,7 +34,8 @@ export async function proxy(request: NextRequest) {
 
   // 전역 가드: 비로그인 시 로그인/회원가입 외 모든 경로 → /login
   const path = request.nextUrl.pathname;
-  const isPublic = path === "/login" || path === "/signup";
+  const PUBLIC = ["/login", "/signup", "/forgot", "/reset"];
+  const isPublic = PUBLIC.includes(path);
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

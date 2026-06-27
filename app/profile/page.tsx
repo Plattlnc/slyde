@@ -192,8 +192,14 @@ export default async function ProfilePage() {
         </div>
       )}
 
-      {/* 로그아웃 */}
-      <div className="px-4 py-5">
+      {/* 계정 관리 */}
+      <div className="space-y-2 px-4 py-5">
+        <Link
+          href="/profile/password"
+          className="block rounded-xl border border-slate-200 bg-white py-3 text-center text-sm font-semibold text-slate-700 active:scale-[0.98]"
+        >
+          비밀번호 변경
+        </Link>
         <LogoutButton />
       </div>
     </div>
