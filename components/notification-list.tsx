@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Avatar from "@/components/avatar";
 import FollowButton from "@/components/follow-button";
@@ -14,11 +15,18 @@ const MSG: Record<Noti["type"], string> = {
 };
 
 export default function NotificationList({ items }: { items: Noti[] }) {
-  // 들어오면 전부 읽음 처리
+  const router = useRouter();
+
+  // 들어오면 전부 읽음 처리 → 캐시 무효화(홈 종 배지 갱신)
   useEffect(() => {
+    const hasUnread = items.some((n) => !n.read);
+    if (!hasUnread) return;
     const supabase = createClient();
-    supabase.from("notifications").update({ read: true }).eq("read", false);
-  }, []);
+    (async () => {
+      await supabase.from("notifications").update({ read: true }).eq("read", false);
+      router.refresh();
+    })();
+  }, [items, router]);
 
   if (items.length === 0) {
     return (
