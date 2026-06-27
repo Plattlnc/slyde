@@ -195,11 +195,11 @@ export default async function ProfilePage() {
               {c.video ? (
                 <>
                   <video
-                    src={c.video}
+                    src={`${c.video}#t=0.1`}
                     muted
                     playsInline
                     preload="metadata"
-                    className="h-full w-full object-cover"
+                    className="h-full w-full bg-black object-cover"
                   />
                   <span className="absolute right-1.5 top-1.5 text-sm text-white drop-shadow">
                     ▶
