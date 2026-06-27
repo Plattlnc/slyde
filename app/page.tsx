@@ -5,18 +5,20 @@ import ThreadCard from "@/components/thread-card";
 import { feedPosts } from "@/lib/mock-data";
 import { fetchFeedPosts } from "@/lib/posts";
 import { getCurrentProfile } from "@/lib/profile";
+import { unreadCount } from "@/lib/notifications";
 
 export default async function Home() {
   // 실제 DB 글(로그인 시) + 샘플 mock 글을 함께 표시
-  const [realPosts, profile] = await Promise.all([
+  const [realPosts, profile, unread] = await Promise.all([
     fetchFeedPosts(),
     getCurrentProfile(),
+    unreadCount(),
   ]);
   const posts = [...realPosts, ...feedPosts];
 
   return (
     <div className="flex min-h-full flex-col bg-slate-100">
-      <FeedTopBar profile={profile} />
+      <FeedTopBar profile={profile} unread={unread} />
       <StoriesBar profile={profile} />
       <InlineComposer profile={profile} />
       <div className="flex flex-col">

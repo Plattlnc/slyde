@@ -102,6 +102,7 @@ const HIDDEN_ON = [
   "/accident", // 사고접수 폼
   "/profile/edit", // 프로필 편집 폼
   "/search", // 검색
+  "/notifications", // 알림
 ];
 
 export default function BottomNav() {

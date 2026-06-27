@@ -4,8 +4,10 @@ import type { CurrentProfile } from "@/lib/profile";
 
 export default function FeedTopBar({
   profile,
+  unread = 0,
 }: {
   profile?: CurrentProfile | null;
+  unread?: number;
 }) {
   return (
     <header className="pt-safe sticky top-0 z-20 border-b border-slate-200 bg-slate-50/80 backdrop-blur">
@@ -25,13 +27,18 @@ export default function FeedTopBar({
           >
             <span className="text-xl">🔍</span>
           </Link>
-          <button
+          <Link
+            href="/notifications"
             aria-label="알림"
             className="relative text-slate-500 active:scale-90"
           >
             <span className="text-xl">🔔</span>
-            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-500" />
-          </button>
+            {unread > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
     </header>
