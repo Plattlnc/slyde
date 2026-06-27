@@ -72,6 +72,34 @@ export default function ChatThread({
     };
   }, [myId, otherId]);
 
+  // 폴링 백업 (리얼타임이 안 닿아도 새 메시지 반영)
+  useEffect(() => {
+    const supabase = createClient();
+    const iv = setInterval(async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("id, sender_id, content, created_at")
+        .or(
+          `and(sender_id.eq.${myId},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${myId})`,
+        )
+        .order("created_at", { ascending: true })
+        .limit(500);
+      if (!data) return;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1]?.id;
+        const newLast = data[data.length - 1]?.id;
+        if (data.length === prev.length && last === newLast) return prev;
+        return data.map((m) => ({
+          id: m.id as string,
+          content: m.content as string,
+          mine: m.sender_id === myId,
+          createdAt: m.created_at as string,
+        }));
+      });
+    }, 3000);
+    return () => clearInterval(iv);
+  }, [myId, otherId]);
+
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const content = text.trim();
