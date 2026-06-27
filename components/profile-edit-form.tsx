@@ -17,9 +17,11 @@ import {
 
 export default function ProfileEditForm({
   userId,
+  currentEmail,
   initial,
 }: {
   userId: string;
+  currentEmail: string;
   initial: {
     name: string;
     avatar: string;
@@ -39,6 +41,25 @@ export default function ProfileEditForm({
   const [bio, setBio] = useState(initial.bio);
   const [badges, setBadges] = useState<string[]>(initial.badges);
   const [busy, setBusy] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<string | null>(null);
+
+  async function changeEmail() {
+    const e = newEmail.trim();
+    if (!e || emailBusy) return;
+    setEmailBusy(true);
+    setEmailMsg(null);
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ email: e });
+    setEmailBusy(false);
+    if (error) {
+      setEmailMsg("변경 실패: " + error.message);
+      return;
+    }
+    setEmailMsg("✅ " + e + " 로 확인 메일을 보냈어요. 인증하면 변경됩니다.");
+    setNewEmail("");
+  }
 
   function toggleBadge(k: BadgeKey) {
     setBadges((prev) => {
@@ -214,6 +235,30 @@ export default function ProfileEditForm({
         <div className="mb-5 mt-1 text-right text-xs text-slate-400">
           {bio.length}/60
         </div>
+
+        {/* 이메일 변경 (인증 필요 — 저장과 별개) */}
+        <Label>이메일 변경</Label>
+        <p className="mb-1.5 text-xs text-slate-400">현재: {currentEmail}</p>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="새 이메일"
+            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={changeEmail}
+            disabled={!newEmail.trim() || emailBusy}
+            className="shrink-0 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 active:scale-95 disabled:opacity-40"
+          >
+            {emailBusy ? "전송…" : "변경"}
+          </button>
+        </div>
+        {emailMsg && (
+          <p className="mt-1.5 text-xs text-slate-600">{emailMsg}</p>
+        )}
+        <div className="mb-5" />
 
         {/* 뱃지 */}
         <Label>뱃지 꾸미기</Label>

@@ -18,6 +18,7 @@ export default async function ProfileEditPage() {
   return (
     <ProfileEditForm
       userId={user.id}
+      currentEmail={user.email ?? ""}
       initial={{
         name: (p?.name as string) ?? "",
         avatar: (p?.avatar as string) ?? "🛵",
