@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { fetchUserPosts } from "@/lib/follows";
 import LogoutButton from "@/components/logout-button";
+import Avatar from "@/components/avatar";
+import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
 
 const tierBadge: Record<string, string> = {
   기업회원: "bg-indigo-100 text-indigo-700",
@@ -55,7 +57,9 @@ export default async function ProfilePage() {
   const [{ data: profile }, { count: postCount }, posts] = await Promise.all([
     supabase
       .from("profiles")
-      .select("name, tier, company, follower_count, following_count")
+      .select(
+        "name, tier, company, avatar, avatar_url, name_emoji, bio, badges, follower_count, following_count",
+      )
       .eq("id", user.id)
       .single(),
     supabase
@@ -69,18 +73,26 @@ export default async function ProfilePage() {
   const tier = profile?.tier ?? "개인회원";
   const company = profile?.company;
   const handle = "@" + (user.email?.split("@")[0] ?? "rider");
+  const avatarUrl = (profile?.avatar_url as string) ?? null;
+  const avatarEmoji = (profile?.avatar as string) ?? "🛵";
+  const nameEmoji = (profile?.name_emoji as string) ?? "";
+  const bio = (profile?.bio as string) ?? "";
+  const badges = ((profile?.badges as string[]) ?? []) as BadgeKey[];
 
   return (
     <div className="min-h-full bg-white">
       {/* 헤더: 아바타 + 이름 */}
-      <div className="flex items-center gap-4 px-4 pb-4 pt-6">
-        <div className="flex h-[74px] w-[74px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-4xl">
-          🛵
-        </div>
-        <div className="min-w-0">
+      <div className="flex items-start gap-4 px-4 pb-4 pt-6">
+        <Avatar
+          url={avatarUrl}
+          emoji={avatarEmoji}
+          className="h-[74px] w-[74px]"
+          emojiClass="text-4xl"
+        />
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <span className="text-lg font-extrabold text-slate-900">{name}</span>
-            <span className="text-base">⚡</span>
+            {nameEmoji && <span className="text-base">{nameEmoji}</span>}
           </div>
           <p className="mt-0.5 text-[13px] text-slate-500">
             {company ? `${company} · ` : ""}
@@ -92,10 +104,22 @@ export default async function ProfilePage() {
             >
               {tier}
             </span>
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-              🛡️ 안전운행
-            </span>
+            {badges.map((k) =>
+              BADGE_CATALOG[k] ? (
+                <span
+                  key={k}
+                  className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700"
+                >
+                  {BADGE_CATALOG[k].i} {BADGE_CATALOG[k].l}
+                </span>
+              ) : null,
+            )}
           </div>
+          {bio && (
+            <p className="mt-2 text-[13px] leading-relaxed text-slate-700">
+              {bio}
+            </p>
+          )}
         </div>
       </div>
 
@@ -136,10 +160,10 @@ export default async function ProfilePage() {
           📊 내 실적 보기
         </Link>
         <Link
-          href={`/u/${user.id}`}
+          href="/profile/edit"
           className="flex-1 rounded-[10px] border border-slate-200 bg-white py-2.5 text-center text-sm font-bold text-slate-700 active:scale-[0.98]"
         >
-          공개 프로필
+          ✏️ 프로필 편집
         </Link>
       </div>
 

@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImages } from "@/lib/upload-media";
+import Avatar from "@/components/avatar";
 import type { CurrentProfile } from "@/lib/profile";
 
 const MAX_IMAGES = 4;
@@ -21,7 +22,6 @@ export default function InlineComposer({
   const [files, setFiles] = useState<File[]>([]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const avatar = profile?.avatarEmoji ?? "🛵";
 
   const canPost = (text.trim().length > 0 || files.length > 0) && !busy;
 
@@ -57,9 +57,12 @@ export default function InlineComposer({
   return (
     <div className="border-b border-slate-200 bg-white px-4 py-3">
       <div className="flex gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
-          {avatar}
-        </div>
+        <Avatar
+          url={profile?.avatarUrl}
+          emoji={profile?.avatarEmoji}
+          className="h-10 w-10"
+          emojiClass="text-xl"
+        />
         <div className="min-w-0 flex-1">
           <textarea
             value={text}

@@ -7,6 +7,11 @@ export type PublicProfile = {
   name: string;
   tier: string;
   company: string | null;
+  avatar: string;
+  avatarUrl: string | null;
+  nameEmoji: string;
+  bio: string | null;
+  badges: string[];
   followerCount: number;
   followingCount: number;
   isMe: boolean;
@@ -24,7 +29,9 @@ export async function fetchPublicProfile(
 
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, name, tier, company, follower_count, following_count")
+      .select(
+        "id, name, tier, company, avatar, avatar_url, name_emoji, bio, badges, follower_count, following_count",
+      )
       .eq("id", userId)
       .single();
     if (error || !data) return null;
@@ -45,6 +52,11 @@ export async function fetchPublicProfile(
       name: (data.name as string) ?? "라이더",
       tier: (data.tier as string) ?? "개인회원",
       company: (data.company as string) ?? null,
+      avatar: (data.avatar as string) ?? "🛵",
+      avatarUrl: (data.avatar_url as string) ?? null,
+      nameEmoji: (data.name_emoji as string) ?? "",
+      bio: (data.bio as string) ?? null,
+      badges: (data.badges as string[]) ?? [],
       followerCount: (data.follower_count as number) ?? 0,
       followingCount: (data.following_count as number) ?? 0,
       isMe: user?.id === userId,

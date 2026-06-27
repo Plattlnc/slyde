@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Avatar from "@/components/avatar";
 import type { CurrentProfile } from "@/lib/profile";
 
 const menuItems = [
@@ -70,9 +71,12 @@ export default function MenuDrawer({
         >
           {/* 헤더: 프로필 */}
           <div className="flex items-center gap-3 bg-gradient-to-b from-blue-600 to-blue-500 px-5 py-5 text-white">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-2xl">
-              {avatar}
-            </div>
+            <Avatar
+              url={profile?.avatarUrl}
+              emoji={avatar}
+              className="h-12 w-12 bg-white/20"
+              emojiClass="text-2xl"
+            />
             <div>
               <p className="text-base font-bold">{name} 님</p>
               <p className="text-xs text-blue-100">

@@ -1,4 +1,5 @@
 import { stories } from "@/lib/mock-data";
+import Avatar from "@/components/avatar";
 import type { CurrentProfile } from "@/lib/profile";
 
 function StoryRing({
@@ -30,17 +31,17 @@ export default function StoriesBar({
 }: {
   profile?: CurrentProfile | null;
 }) {
-  const avatar = profile?.avatarEmoji ?? "🛵";
   return (
     <div className="no-scrollbar flex gap-3 overflow-x-auto border-b border-slate-200 bg-white px-4 py-3">
       {/* 내 스토리 (추가 버튼) */}
       <button className="flex w-[72px] shrink-0 flex-col items-center gap-1 active:scale-95">
         <div className="relative">
-          <div className="rounded-full p-[2.5px]">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl ring-2 ring-slate-200">
-              {avatar}
-            </div>
-          </div>
+          <Avatar
+            url={profile?.avatarUrl}
+            emoji={profile?.avatarEmoji}
+            className="h-16 w-16 ring-2 ring-slate-200"
+            emojiClass="text-2xl"
+          />
           <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-xs font-bold leading-none text-white">
             +
           </span>

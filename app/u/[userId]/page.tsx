@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ThreadCard from "@/components/thread-card";
 import FollowButton from "@/components/follow-button";
+import Avatar from "@/components/avatar";
+import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
 import { fetchPublicProfile, fetchUserPosts } from "@/lib/follows";
 
 const tierBadge: Record<string, string> = {
@@ -36,15 +38,21 @@ export default async function UserProfilePage({
 
       {/* 프로필 헤더 */}
       <div className="bg-white px-5 py-5">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-3xl">
-            🛵
-          </div>
+        <div className="flex items-start gap-4">
+          <Avatar
+            url={profile.avatarUrl}
+            emoji={profile.avatar}
+            className="h-16 w-16"
+            emojiClass="text-3xl"
+          />
           <div className="flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="text-lg font-bold text-slate-900">
                 {profile.name}
               </span>
+              {profile.nameEmoji && (
+                <span className="text-base">{profile.nameEmoji}</span>
+              )}
               <span
                 className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                   tierBadge[profile.tier] ?? "bg-slate-100 text-slate-600"
@@ -55,6 +63,23 @@ export default async function UserProfilePage({
             </div>
             {profile.company && (
               <p className="text-xs text-slate-400">{profile.company}</p>
+            )}
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {(profile.badges as BadgeKey[]).map((k) =>
+                BADGE_CATALOG[k] ? (
+                  <span
+                    key={k}
+                    className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700"
+                  >
+                    {BADGE_CATALOG[k].i} {BADGE_CATALOG[k].l}
+                  </span>
+                ) : null,
+              )}
+            </div>
+            {profile.bio && (
+              <p className="mt-2 text-[13px] leading-relaxed text-slate-700">
+                {profile.bio}
+              </p>
             )}
           </div>
         </div>

@@ -26,6 +26,7 @@
 | 08 | `08_follows.sql` | 팔로우/팔로워 테이블 + RLS + 카운트 집계 |
 | 09 | `09_lease_inquiries.sql` | 리스/렌탈 상담신청 테이블 + RLS |
 | 10 | `10_accident_reports.sql` | 사고접수 테이블 + RLS |
+| 11 | `11_profile_customization.sql` | 프로필 꾸미기(아바타/이름이모지/소개/뱃지) 컬럼 |
 
 ## 새 SQL이 필요할 때
 
