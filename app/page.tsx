@@ -1,6 +1,6 @@
 import FeedTopBar from "@/components/feed-top-bar";
 import StoriesBar from "@/components/stories-bar";
-import ComposerPrompt from "@/components/composer-prompt";
+import InlineComposer from "@/components/inline-composer";
 import ThreadCard from "@/components/thread-card";
 import { feedPosts } from "@/lib/mock-data";
 import { fetchFeedPosts } from "@/lib/posts";
@@ -18,7 +18,7 @@ export default async function Home() {
     <div className="flex min-h-full flex-col bg-slate-100">
       <FeedTopBar profile={profile} />
       <StoriesBar profile={profile} />
-      <ComposerPrompt profile={profile} />
+      <InlineComposer profile={profile} />
       <div className="flex flex-col">
         {posts.map((post) => (
           <ThreadCard key={post.id} post={post} />
