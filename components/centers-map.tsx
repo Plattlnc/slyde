@@ -68,7 +68,7 @@ export default function CentersMap() {
       // 키워드 장소검색 (services)
       const ps = new kakao.maps.services.Places();
       ps.keywordSearch(
-        "오토바이 정비소",
+        "오토바이",
         (data: KakaoPlace[], st: string) => {
           if (cancelled) return;
           if (st === kakao.maps.services.Status.OK) {
