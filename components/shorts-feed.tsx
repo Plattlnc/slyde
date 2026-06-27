@@ -195,7 +195,7 @@ function ShortItem({
         open={showComments}
         onClose={() => setShowComments(false)}
         me={me}
-        onAdded={() => setComments((c) => c + 1)}
+        onCount={(d) => setComments((c) => Math.max(0, c + d))}
       />
     </div>
   );

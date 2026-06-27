@@ -32,6 +32,7 @@
 | 14 | `14_comment_replies_likes.sql` | 댓글 답글(parent_id) + 댓글/답글 좋아요 |
 | 15 | `15_short_comments.sql` | 숏폼 댓글 테이블 + 카운트 |
 | 16 | `16_short_comment_likes.sql` | 숏폼 댓글 좋아요 + 카운트 |
+| 17 | `17_short_comment_replies.sql` | 숏폼 댓글 답글(parent_id) |
 
 ## 새 SQL이 필요할 때
 
