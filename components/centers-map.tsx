@@ -7,11 +7,13 @@ import { fmtDistance, DEFAULT_POS, type KakaoPlace } from "@/lib/centers";
 
 let sdkPromise: Promise<any> | null = null;
 function loadKakaoSdk(jsKey: string): Promise<any> {
-  if ((window as any).kakao?.maps) return Promise.resolve((window as any).kakao);
+  if ((window as any).kakao?.maps?.services)
+    return Promise.resolve((window as any).kakao);
   if (sdkPromise) return sdkPromise;
   sdkPromise = new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${jsKey}&autoload=false`;
+    // services 라이브러리 포함 → 키워드 장소검색을 JS 키로 클라에서 수행
+    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${jsKey}&autoload=false&libraries=services`;
     s.async = true;
     s.onload = () =>
       (window as any).kakao.maps.load(() => resolve((window as any).kakao));
@@ -21,76 +23,78 @@ function loadKakaoSdk(jsKey: string): Promise<any> {
   return sdkPromise;
 }
 
+type Status = "loading" | "ready" | "empty" | "no_js_key" | "error";
+
 export default function CentersMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [places, setPlaces] = useState<KakaoPlace[]>([]);
-  const [listStatus, setListStatus] = useState<
-    "loading" | "ready" | "error" | "no_rest_key" | "empty"
-  >("loading");
-  const [mapStatus, setMapStatus] = useState<
-    "loading" | "ready" | "no_js_key" | "error"
-  >("loading");
+  const [status, setStatus] = useState<Status>("loading");
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+    if (!jsKey) {
+      setStatus("no_js_key");
+      return;
+    }
     let cancelled = false;
 
     async function run(lat: number, lng: number) {
-      // 1) 검색 (서버 라우트 → 카카오 REST)
+      let kakao: any;
       try {
-        const res = await fetch(`/api/centers?x=${lng}&y=${lat}`);
-        const data = await res.json();
-        if (cancelled) return;
-        if (data.error === "no_rest_key") {
-          setListStatus("no_rest_key");
-        } else if (!res.ok || !data.documents) {
-          setListStatus("error");
-        } else {
-          const docs: KakaoPlace[] = data.documents;
-          setPlaces(docs);
-          setListStatus(docs.length ? "ready" : "empty");
-          // 2) 지도
-          if (!jsKey) {
-            setMapStatus("no_js_key");
-          } else {
-            try {
-              const kakao = await loadKakaoSdk(jsKey);
-              if (cancelled || !mapRef.current) return;
-              const center = new kakao.maps.LatLng(lat, lng);
-              const map = new kakao.maps.Map(mapRef.current, {
-                center,
-                level: 5,
-              });
-              // 내 위치
-              new kakao.maps.Marker({
-                map,
-                position: center,
-                image: new kakao.maps.MarkerImage(
-                  "data:image/svg+xml;base64," +
-                    btoa(
-                      `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="7" fill="#2563eb" stroke="#fff" stroke-width="3"/></svg>`,
-                    ),
-                  new kakao.maps.Size(20, 20),
-                ),
-              });
-              // 정비소 마커
-              docs.forEach((p) => {
-                new kakao.maps.Marker({
-                  map,
-                  position: new kakao.maps.LatLng(Number(p.y), Number(p.x)),
-                  title: p.place_name,
-                });
-              });
-              setMapStatus("ready");
-            } catch {
-              setMapStatus("error");
-            }
-          }
-        }
+        kakao = await loadKakaoSdk(jsKey as string);
       } catch {
-        if (!cancelled) setListStatus("error");
+        if (!cancelled) setStatus("error");
+        return;
       }
+      if (cancelled || !mapRef.current) return;
+
+      const me = new kakao.maps.LatLng(lat, lng);
+      const map = new kakao.maps.Map(mapRef.current, { center: me, level: 5 });
+
+      // 내 위치 마커
+      new kakao.maps.Marker({
+        map,
+        position: me,
+        image: new kakao.maps.MarkerImage(
+          "data:image/svg+xml;base64," +
+            btoa(
+              `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="7" fill="#2563eb" stroke="#fff" stroke-width="3"/></svg>`,
+            ),
+          new kakao.maps.Size(20, 20),
+        ),
+      });
+
+      // 키워드 장소검색 (services)
+      const ps = new kakao.maps.services.Places();
+      ps.keywordSearch(
+        "오토바이 정비소",
+        (data: KakaoPlace[], st: string) => {
+          if (cancelled) return;
+          if (st === kakao.maps.services.Status.OK) {
+            setPlaces(data);
+            setStatus(data.length ? "ready" : "empty");
+            const bounds = new kakao.maps.LatLngBounds();
+            bounds.extend(me);
+            data.forEach((p) => {
+              const pos = new kakao.maps.LatLng(Number(p.y), Number(p.x));
+              new kakao.maps.Marker({ map, position: pos, title: p.place_name });
+              bounds.extend(pos);
+            });
+            if (data.length) map.setBounds(bounds);
+          } else if (st === kakao.maps.services.Status.ZERO_RESULT) {
+            setStatus("empty");
+          } else {
+            setStatus("error");
+          }
+        },
+        {
+          location: me,
+          radius: 5000,
+          sort: kakao.maps.services.SortBy.DISTANCE,
+          size: 15,
+        },
+      );
     }
 
     if (navigator.geolocation) {
@@ -129,31 +133,36 @@ export default function CentersMap() {
       </header>
 
       {/* 지도 */}
-      {mapStatus === "no_js_key" ? (
+      {status === "no_js_key" ? (
         <div className="m-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          지도 JS 키가 설정되지 않았어요.
+          카카오 지도 JS 키가 설정되지 않았어요.
           <span className="block text-xs">
-            (NEXT_PUBLIC_KAKAO_JS_KEY 설정 + 도메인 등록 필요)
+            (NEXT_PUBLIC_KAKAO_JS_KEY + JavaScript 키에 SDK 도메인 등록 필요)
           </span>
         </div>
       ) : (
         <div className="relative h-64 w-full bg-slate-200">
           <div ref={mapRef} className="h-full w-full" />
-          {mapStatus === "loading" && (
+          {status === "loading" && (
             <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-500">
-              지도 불러오는 중…
+              지도·검색 불러오는 중…
+            </div>
+          )}
+          {status === "error" && (
+            <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-rose-600">
+              지도를 불러오지 못했어요. JS 키/도메인 등록을 확인해주세요.
             </div>
           )}
         </div>
       )}
 
-      {denied && (
+      {denied && status !== "no_js_key" && (
         <p className="px-4 pt-2 text-[11px] text-slate-400">
           * 위치 권한이 없어 서울시청 기준으로 검색했어요.
         </p>
       )}
 
-      {/* 긴급출동 (가장 가까운 곳) */}
+      {/* 긴급출동 */}
       {nearest && nearest.phone && (
         <div className="px-4 pt-3">
           <a
@@ -169,28 +178,11 @@ export default function CentersMap() {
       <p className="px-4 pb-1 pt-4 text-xs font-bold text-slate-500">
         거리순 정비소
       </p>
-
-      {listStatus === "no_rest_key" && (
-        <p className="px-4 py-6 text-center text-sm text-amber-700">
-          검색 REST 키가 설정되지 않았어요 (KAKAO_REST_API_KEY)
-        </p>
-      )}
-      {listStatus === "error" && (
-        <p className="px-4 py-6 text-center text-sm text-rose-600">
-          검색에 실패했어요. 키/네트워크를 확인해주세요.
-        </p>
-      )}
-      {listStatus === "loading" && (
-        <p className="px-4 py-6 text-center text-sm text-slate-400">
-          검색 중…
-        </p>
-      )}
-      {listStatus === "empty" && (
+      {status === "empty" && (
         <p className="px-4 py-6 text-center text-sm text-slate-400">
           주변 5km 내 정비소를 찾지 못했어요.
         </p>
       )}
-
       <div className="divide-y divide-slate-100">
         {places.map((p) => (
           <div key={p.id} className="flex items-center gap-3 bg-white px-4 py-3">
