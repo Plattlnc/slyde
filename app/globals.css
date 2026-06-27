@@ -1,4 +1,15 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500&display=swap");
+
+/* slyde 워드마크 (둥글고 친근한 이탤릭) */
+.wordmark {
+  font-family: "Fredoka", system-ui, sans-serif;
+  font-weight: 500;
+  line-height: 1;
+  display: inline-block;
+  transform: skewX(-10deg);
+  letter-spacing: -0.01em;
+}
 
 @theme inline {
   --color-brand: #2563eb;
