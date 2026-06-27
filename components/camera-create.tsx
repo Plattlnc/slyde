@@ -24,6 +24,9 @@ export default function CameraCreate() {
   const chunksRef = useRef<Blob[]>([]);
   const intentRef = useRef<"photo" | "video">("photo");
   const pressStartRef = useRef(0);
+  const recordingRef = useRef(false);
+  const longTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startedThisPressRef = useRef(false);
   const videoFileRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<Mode>("Shorts");
@@ -107,30 +110,48 @@ export default function CameraCreate() {
     };
     recorderRef.current = rec;
     rec.start();
+    recordingRef.current = true;
     setRecording(true);
   }
   function stopRecording() {
     recorderRef.current?.stop();
+    recordingRef.current = false;
     setRecording(false);
   }
 
-  // 셔터: 탭=사진, 길게=영상
+  const LONG = 350;
+  // 짧은 탭=사진, 길게 눌렀다 떼면=녹화 시작(유지), 녹화 중 탭=정지
   function onShutterDown() {
     if (busy || camError) return;
     pressStartRef.current = Date.now();
-    intentRef.current = "video";
-    startRecording();
+    startedThisPressRef.current = false;
+    if (recordingRef.current) return; // 녹화 중이면 손 뗄 때(탭) 정지 처리
+    longTimerRef.current = setTimeout(() => {
+      startedThisPressRef.current = true;
+      intentRef.current = "video";
+      startRecording();
+    }, LONG);
   }
   function onShutterUp() {
     if (busy || camError) return;
-    const elapsed = Date.now() - pressStartRef.current;
-    if (elapsed < 350) {
-      intentRef.current = "photo";
+    if (longTimerRef.current) {
+      clearTimeout(longTimerRef.current);
+      longTimerRef.current = null;
+    }
+    if (recordingRef.current) {
+      if (startedThisPressRef.current) return; // 방금 길게 눌러 시작 → 계속 녹화
+      intentRef.current = "video"; // 녹화 중 탭 → 정지
       stopRecording();
-      capturePhoto();
     } else {
-      intentRef.current = "video";
-      stopRecording();
+      const elapsed = Date.now() - pressStartRef.current;
+      if (elapsed < LONG) capturePhoto(); // 짧은 탭 → 사진
+    }
+  }
+  function onShutterLeave() {
+    // 길게 누르는 중 손이 벗어나면(아직 녹화 전) 타이머 취소
+    if (longTimerRef.current && !recordingRef.current) {
+      clearTimeout(longTimerRef.current);
+      longTimerRef.current = null;
     }
   }
 
@@ -323,7 +344,7 @@ export default function CameraCreate() {
             <button
               onPointerDown={onShutterDown}
               onPointerUp={onShutterUp}
-              onPointerLeave={recording ? onShutterUp : undefined}
+              onPointerLeave={onShutterLeave}
               disabled={camError}
               aria-label="촬영"
               className={`flex h-20 w-20 items-center justify-center rounded-full border-4 transition active:scale-95 disabled:opacity-40 ${
@@ -350,7 +371,9 @@ export default function CameraCreate() {
 
         {mode === "Shorts" && !camError && (
           <p className="mb-2 text-center text-[11px] text-white/60">
-            탭 = 사진 · 길게 누르면 = 영상
+            {recording
+              ? "● 녹화 중 — 탭하면 정지"
+              : "탭 = 사진 · 길게 = 영상 녹화 시작"}
           </p>
         )}
 
