@@ -89,7 +89,15 @@ const tabs = [
   { href: "/profile", label: "프로필", Icon: null }, // 아바타로
 ];
 
-const HIDDEN_ON = ["/login", "/signup", "/compose", "/shorts/new", "/create"];
+const HIDDEN_ON = [
+  "/login",
+  "/signup",
+  "/compose",
+  "/shorts/new",
+  "/create",
+  "/messages/", // 채팅방·새 메시지 (목록 /messages 는 유지)
+  "/post/", // 글 상세
+];
 
 export default function BottomNav() {
   const pathname = usePathname();
