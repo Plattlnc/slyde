@@ -1,9 +1,10 @@
 import Link from "next/link";
 import Avatar from "@/components/avatar";
-import { fetchConversations } from "@/lib/messages";
+import { fetchMessageList } from "@/lib/messages";
 
 export default async function MessagesPage() {
-  const conversations = await fetchConversations();
+  const { conversations, suggestions } = await fetchMessageList();
+  const empty = conversations.length === 0 && suggestions.length === 0;
 
   return (
     <div className="min-h-full bg-slate-50">
@@ -20,10 +21,10 @@ export default async function MessagesPage() {
         </div>
       </header>
 
-      {conversations.length === 0 ? (
+      {empty ? (
         <div className="flex flex-col items-center justify-center gap-3 px-6 py-20 text-center">
           <div className="text-5xl">✉️</div>
-          <p className="text-sm text-slate-500">아직 대화가 없어요</p>
+          <p className="text-sm text-slate-500">아직 대화도, 팔로우한 사람도 없어요</p>
           <Link
             href="/messages/new"
             className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white active:scale-95"
@@ -32,36 +33,74 @@ export default async function MessagesPage() {
           </Link>
         </div>
       ) : (
-        <div className="divide-y divide-slate-100">
-          {conversations.map((c) => (
-            <Link
-              key={c.otherId}
-              href={`/messages/${c.otherId}`}
-              className="flex items-center gap-3 bg-white px-4 py-3 active:bg-slate-50"
-            >
-              <Avatar
-                url={c.avatarUrl}
-                emoji={c.avatar}
-                className="h-12 w-12"
-                emojiClass="text-2xl"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="truncate text-sm font-bold text-slate-900">
-                    {c.name}
-                  </span>
-                  <span className="shrink-0 text-[11px] text-slate-400">
-                    {c.time}
-                  </span>
-                </div>
-                <p className="truncate text-xs text-slate-500">
-                  {c.fromMe ? "나: " : ""}
-                  {c.lastText}
-                </p>
+        <>
+          {/* 진행 중인 대화 (마지막 메시지 미리보기) */}
+          {conversations.length > 0 && (
+            <div className="divide-y divide-slate-100">
+              {conversations.map((c) => (
+                <Link
+                  key={c.otherId}
+                  href={`/messages/${c.otherId}`}
+                  className="flex items-center gap-3 bg-white px-4 py-3 active:bg-slate-50"
+                >
+                  <Avatar
+                    url={c.avatarUrl}
+                    emoji={c.avatar}
+                    className="h-12 w-12"
+                    emojiClass="text-2xl"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="truncate text-sm font-bold text-slate-900">
+                        {c.name}
+                      </span>
+                      <span className="shrink-0 text-[11px] text-slate-400">
+                        {c.time}
+                      </span>
+                    </div>
+                    <p className="truncate text-xs text-slate-500">
+                      {c.fromMe ? "나: " : ""}
+                      {c.lastText}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* 팔로잉 추천 — 새로운 대화 시작하기 */}
+          {suggestions.length > 0 && (
+            <>
+              <p className="px-4 pb-1 pt-4 text-xs font-bold text-slate-500">
+                팔로잉
+              </p>
+              <div className="divide-y divide-slate-100">
+                {suggestions.map((u) => (
+                  <Link
+                    key={u.id}
+                    href={`/messages/${u.id}`}
+                    className="flex items-center gap-3 bg-white px-4 py-3 active:bg-slate-50"
+                  >
+                    <Avatar
+                      url={u.avatarUrl}
+                      emoji={u.avatar}
+                      className="h-12 w-12"
+                      emojiClass="text-2xl"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <span className="truncate text-sm font-bold text-slate-900">
+                        {u.name}
+                      </span>
+                      <p className="truncate text-xs text-blue-500">
+                        새로운 대화 시작하기 →
+                      </p>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </Link>
-          ))}
-        </div>
+            </>
+          )}
+        </>
       )}
     </div>
   );

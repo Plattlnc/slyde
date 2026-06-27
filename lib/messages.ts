@@ -83,6 +83,45 @@ export async function fetchConversations(): Promise<Conversation[]> {
   }
 }
 
+// 대화목록 + 팔로잉 중 아직 대화 안 한 사람(추천)
+export async function fetchMessageList(): Promise<{
+  conversations: Conversation[];
+  suggestions: UserLite[];
+}> {
+  const conversations = await fetchConversations();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { conversations, suggestions: [] };
+
+    const { data: fl } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", user.id);
+    const followingIds = (fl ?? []).map((f) => f.following_id as string);
+    const convoIds = new Set(conversations.map((c) => c.otherId));
+    const newIds = followingIds.filter((id) => !convoIds.has(id));
+    if (!newIds.length) return { conversations, suggestions: [] };
+
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, name, tier, avatar, avatar_url")
+      .in("id", newIds);
+    const suggestions: UserLite[] = (profs ?? []).map((p) => ({
+      id: p.id as string,
+      name: (p.name as string) ?? "라이더",
+      tier: (p.tier as string) ?? "개인회원",
+      avatar: (p.avatar as string) ?? "🛵",
+      avatarUrl: (p.avatar_url as string) ?? null,
+    }));
+    return { conversations, suggestions };
+  } catch {
+    return { conversations, suggestions: [] };
+  }
+}
+
 // 특정 상대와의 대화 내용
 export async function fetchThread(otherId: string): Promise<ChatMessage[]> {
   try {
