@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>slyde — 라이더 슈퍼앱</title>
+
+<!--
+  ════════════════════════════════════════════════════════════
+  편집 가이드
+  - 색상/간격/폰트는 아래 :root 변수만 바꾸면 전체에 반영됩니다.
+  - 피드 글은 <article class="post"> ... </article> 단위로 추가/삭제하세요.
+  - 사이드 메뉴 항목은 .menu-item 을 복사해 추가하세요.
+  - 사진은 저작권상 .photo (그라데이션 placeholder)로 대체했습니다.
+    실제 이미지를 넣으려면 <div class="photo">를 <img>로 교체하세요.
+  ════════════════════════════════════════════════════════════
+-->
+
+<style>
+/* ─────────────── 디자인 토큰 (여기만 바꾸면 전체 반영) ─────────────── */
+:root{
+  --brand:#2563eb;            /* 메인 블루 */
+  --brand-2:#4f46e5;          /* 헤더 그라데이션 보조색 */
+  --verify:#2563eb;           /* 인증 체크 색 */
+  --bg:#ffffff;               /* 배경 */
+  --bg-soft:#f8f9fb;          /* 헤더/탭바 배경 */
+  --line:#eceef1;             /* 구분선 */
+  --text:#1c1e21;             /* 본문 텍스트 */
+  --text-sub:#8a8f98;         /* 회색 보조 텍스트 (시간/카운트) */
+  --post-body:#3a3d42;        /* 글 본문 */
+  --avatar-bg:#f1f3f6;        /* 아바타 원형 배경 */
+
+  --badge-partner-bg:#eef0ff; /* 협력사회원 배지 배경 */
+  --badge-partner-fg:#5b6bd6; /* 협력사회원 배지 글자 */
+  --badge-personal-bg:#f0f1f3;/* 개인회원 배지 배경 */
+  --badge-personal-fg:#7a7f88;/* 개인회원 배지 글자 */
+  --badge-biz-bg:#e8eefc;     /* 기업회원 배지 배경 */
+  --badge-biz-fg:#3a6fd8;     /* 기업회원 배지 글자 */
+
+  --story-ring:linear-gradient(135deg,#a855f7,#ec4899,#f97316); /* 스토리 링 */
+
+  --app-w:430px;              /* 앱 최대 폭(모바일 프레임) */
+  --radius:16px;
+  --font:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
+}
+
+/* ─────────────── 리셋 ─────────────── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  color:var(--text);
+  background:#dfe3e8;            /* 프레임 바깥 회색 (편집 시 구분용) */
+  display:flex;justify-content:center;
+}
+
+/* ─────────────── 앱 프레임 ─────────────── */
+.app{
+  position:relative;
+  width:100%;max-width:var(--app-w);
+  min-height:100vh;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 0 40px rgba(0,0,0,.08);
+}
+
+/* ─────────────── 상단 헤더 ─────────────── */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;
+  height:54px;padding:0 16px;
+  background:var(--bg-soft);
+  border-bottom:1px solid var(--line);
+}
+.topbar .logo{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.icon-btn{
+  width:34px;height:34px;border:none;background:none;cursor:pointer;
+  font-size:21px;display:grid;place-items:center;color:var(--text);
+  position:relative;
+}
+.dot{position:absolute;top:5px;right:6px;width:7px;height:7px;border-radius:50%;background:#ef4444}
+
+/* ─────────────── 스크롤 영역 ─────────────── */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* ─────────────── 글 작성 프롬프트 ─────────────── */
+.composer{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-bottom:8px solid var(--bg-soft);
+}
+.composer .pfp{width:38px;height:38px;border-radius:50%;background:var(--avatar-bg);
+  display:grid;place-items:center;font-size:20px}
+.composer .ph{color:var(--text-sub);font-size:15px}
+
+/* ─────────────── 피드 글 카드 ─────────────── */
+.post{padding:14px 16px;border-bottom:1px solid var(--line)}
+.post-head{display:flex;align-items:flex-start;gap:10px}
+.post-head .pfp{flex:0 0 auto;width:42px;height:42px;border-radius:50%;
+  background:var(--avatar-bg);display:grid;place-items:center;font-size:22px}
+.who{flex:1;min-width:0}
+.name-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.uname{font-weight:700;font-size:15px}
+.verify{color:var(--verify);font-size:14px}
+.time{margin-left:auto;color:var(--text-sub);font-size:13px;white-space:nowrap}
+.service{font-size:12.5px;color:var(--text-sub);margin-top:1px}
+
+/* 회원 배지 */
+.badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.badge.partner{background:var(--badge-partner-bg);color:var(--badge-partner-fg)}
+.badge.personal{background:var(--badge-personal-bg);color:var(--badge-personal-fg)}
+.badge.biz{background:var(--badge-biz-bg);color:var(--badge-biz-fg)}
+
+.body{margin-top:9px;font-size:15px;line-height:1.55;color:var(--post-body);
+  white-space:pre-wrap;word-break:break-word}
+
+/* 사진 placeholder (실제 이미지 넣으려면 <img>로 교체) */
+.photo{margin-top:12px;border-radius:var(--radius);height:300px;
+  background:linear-gradient(135deg,#cbd2db,#9aa3af);
+  display:grid;place-items:center;font-size:40px;color:#fff;position:relative}
+.photo::after{content:"📷 사진";position:absolute;bottom:10px;right:12px;
+  font-size:12px;color:#fff;opacity:.85;background:rgba(0,0,0,.25);
+  padding:3px 8px;border-radius:12px}
+
+/* 광고/지도 등 그라데이션 카드 */
+.card-media{margin-top:12px;border-radius:var(--radius);height:230px;
+  display:grid;place-items:center;font-size:56px}
+.card-media.blue{background:linear-gradient(150deg,#6366f1,#4338ca)}
+.card-media.green{background:linear-gradient(150deg,#34d399,#059669)}
+
+/* 광고 CTA 박스 */
+.cta{margin-top:10px;display:flex;align-items:center;justify-content:space-between;
+  border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.cta .src{font-size:14px;color:var(--text-sub)}
+.cta .go{font-size:14px;font-weight:700;color:var(--brand)}
+
+/* 반응 줄 */
+.actions{display:flex;align-items:center;gap:22px;margin-top:12px;color:var(--text-sub)}
+.act{display:flex;align-items:center;gap:6px;font-size:13.5px;cursor:pointer;
+  background:none;border:none;color:inherit;font-family:inherit;padding:0}
+.act:active{transform:scale(.92)}
+.act.heart.on{color:#e0457b}
+.act .ico{font-size:17px}
+.act.share{margin-left:auto}
+
+.feed-end{text-align:center;color:var(--text-sub);font-size:13px;padding:26px 0 90px}
+
+/* ─────────────── 하단 탭바 ─────────────── */
+.tabbar{
+  position:sticky;bottom:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-around;
+  height:58px;background:var(--bg-soft);border-top:1px solid var(--line);
+}
+.tab{font-size:23px;background:none;border:none;cursor:pointer;color:#9aa0a8;
+  display:grid;place-items:center;width:44px;height:44px}
+.tab.active{color:var(--text)}
+
+/* ─────────────── 사이드 메뉴 (드로어) ─────────────── */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:40;
+  opacity:0;visibility:hidden;transition:opacity .25s}
+.app.menu-open .overlay{opacity:1;visibility:visible}
+
+.drawer{
+  position:absolute;top:0;left:0;bottom:0;z-index:50;
+  width:78%;max-width:330px;background:#fff;
+  transform:translateX(-100%);transition:transform .28s ease;
+  display:flex;flex-direction:column;
+}
+.app.menu-open .drawer{transform:translateX(0)}
+
+.drawer-head{
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#fff;padding:26px 20px 22px;display:flex;align-items:center;gap:14px;
+}
+.drawer-head .pfp{width:54px;height:54px;border-radius:50%;
+  background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:28px}
+.drawer-head .dname{font-size:18px;font-weight:800}
+.drawer-head .dsub{font-size:13px;opacity:.9;margin-top:3px}
+
+.menu-list{flex:1;padding:10px 0;overflow-y:auto}
+.menu-item{display:flex;align-items:center;gap:16px;padding:15px 22px;
+  font-size:16px;color:var(--text);cursor:pointer;background:none;border:none;
+  width:100%;text-align:left;font-family:inherit}
+.menu-item:hover{background:var(--bg-soft)}
+.menu-item .mico{font-size:22px;width:26px;text-align:center}
+.menu-section{font-size:11.5px;font-weight:800;color:var(--text-sub);letter-spacing:.04em;
+  padding:14px 22px 6px;text-transform:none}
+.menu-list .menu-section:first-child{padding-top:6px}
+
+.drawer-close{padding:16px;text-align:center;color:var(--text-sub);
+  font-size:15px;border-top:1px solid var(--line);cursor:pointer;
+  background:none;border-left:none;border-right:none;border-bottom:none;
+  width:100%;font-family:inherit}
+
+/* ─────────────── 사고접수 SDK 로딩 화면 ─────────────── */
+.loader{
+  position:absolute;inset:0;z-index:60;
+  background:linear-gradient(160deg,#fff,#fff6f2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;text-align:center;
+  opacity:0;visibility:hidden;transition:opacity .25s;
+}
+.app.loading .loader{opacity:1;visibility:visible}
+.loader .badge-ico{
+  width:84px;height:84px;border-radius:24px;font-size:42px;
+  background:#fff;display:grid;place-items:center;
+  box-shadow:0 10px 30px rgba(249,115,22,.25);
+}
+.loader .spinner{
+  width:38px;height:38px;border-radius:50%;
+  border:3px solid #f4d9cc;border-top-color:#f97316;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader .l-title{font-size:16px;font-weight:700;color:var(--text)}
+.loader .l-sub{font-size:13px;color:var(--text-sub)}
+.loader .l-ver{
+  position:absolute;bottom:26px;font-size:12px;color:#b9bec6;letter-spacing:.3px;
+}
+@media (prefers-reduced-motion:reduce){
+  .loader .spinner{animation:none}
+}
+
+/* ─────────────── 사고접수 화면 ─────────────── */
+.screen{position:absolute;inset:0;z-index:55;background:var(--bg);
+  display:flex;flex-direction:column;visibility:hidden;
+  transform:translateX(100%);transition:transform .3s ease}
+.screen.show{transform:translateX(0);visibility:visible}
+
+.screen-top{display:flex;align-items:center;justify-content:space-between;
+  height:54px;padding:0 12px;background:var(--bg-soft);border-bottom:1px solid var(--line)}
+.screen-top .back{width:34px;height:34px;border:none;background:none;
+  font-size:22px;cursor:pointer;color:var(--text)}
+.screen-title{font-size:17px;font-weight:700}
+.screen-body{flex:1;overflow-y:auto;padding:16px}
+
+/* 긴급 안내 배너 */
+.emg{display:flex;align-items:center;gap:10px;background:#fff4ef;
+  border:1px solid #ffd9c7;border-radius:12px;padding:12px 14px;margin-bottom:18px}
+.emg-txt{flex:1;font-size:13px;color:#c2410c;line-height:1.45}
+.emg-call{background:#f97316;color:#fff;border:none;border-radius:20px;white-space:nowrap;
+  padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* 입력 필드 공통 */
+.field{margin-bottom:18px}
+.field>label{display:block;font-size:14px;font-weight:700;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 14px;border-radius:22px;border:1px solid var(--line);background:#fff;
+  font-size:14px;color:var(--text);cursor:pointer;font-family:inherit}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.input{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;
+  padding:13px 14px;font-size:15px;font-family:inherit;color:var(--text)}
+.input::placeholder{color:#b9bec6}
+.input.area{min-height:96px;resize:vertical}
+.upload{border:1.5px dashed #cfd4db;border-radius:12px;padding:24px;cursor:pointer;
+  text-align:center;color:var(--text-sub);font-size:14px;
+  display:flex;flex-direction:column;align-items:center;gap:8px}
+.upload .up-ico{font-size:28px}
+
+/* 하단 제출 */
+.screen-foot{padding:12px 16px;border-top:1px solid var(--line);background:var(--bg)}
+.submit{width:100%;background:#f97316;color:#fff;border:none;border-radius:14px;
+  padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.submit:active{opacity:.9}
+
+/* 접수 완료 오버레이 */
+.done{position:absolute;inset:0;z-index:5;background:var(--bg);text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:24px;opacity:0;visibility:hidden;transition:opacity .25s}
+.done.show{opacity:1;visibility:visible}
+.done-ico{font-size:56px}
+.done-title{font-size:19px;font-weight:800}
+.done-sub{font-size:14px;color:var(--text-sub);line-height:1.6}
+.done-btn{margin-top:10px;background:var(--brand);color:#fff;border:none;border-radius:14px;
+  padding:14px 40px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ═══════════ 신규 메뉴 화면 공통 ═══════════ */
+.sec-title{font-size:18px;font-weight:800;letter-spacing:-.02em;margin-bottom:3px}
+.sec-sub{font-size:12.5px;color:var(--text-sub);margin-bottom:14px}
+.seg{display:flex;background:#eef0f3;border-radius:12px;padding:4px;gap:4px;margin-bottom:16px}
+.seg button{flex:1;border:none;background:none;font-family:inherit;font-size:14px;font-weight:700;
+  color:var(--text-sub);padding:9px 0;border-radius:9px;cursor:pointer}
+.seg button.on{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.chiprow{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none}
+.chiprow::-webkit-scrollbar{display:none}
+.fchip{flex-shrink:0;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;
+  font-size:13px;font-weight:600;color:var(--text-sub);cursor:pointer;font-family:inherit;white-space:nowrap}
+.fchip.on{border-color:var(--brand);background:var(--brand);color:#fff}
+
+/* ── 내 실적 ── */
+.pf-banner{display:flex;align-items:center;justify-content:space-between;
+  border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.pf-banner .lbl{font-size:12.5px;color:var(--text-sub);font-weight:600}
+.pf-banner .val{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.pf-banner .val .u{font-size:13px;font-weight:600;color:var(--text-sub);margin-left:2px}
+.pf-banner .amt{font-size:14px;font-weight:700;color:var(--text-sub);margin-left:6px;font-variant-numeric:tabular-nums}
+.pf-banner .pct{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--brand)}
+.pf-tag{font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;background:#e7f6ee;color:#1e9e5a}
+.pf-card{border:1px solid var(--line);border-radius:16px;padding:14px 12px;margin-bottom:14px}
+.pf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pf-cell{background:#f6f7f9;border-radius:11px;padding:10px 4px;text-align:center}
+.pf-cell .nm{font-size:11px;color:var(--text-sub);font-weight:600;margin-bottom:5px;display:flex;align-items:center;justify-content:center;gap:4px}
+.pf-cell .dot{width:6px;height:6px;border-radius:50%}
+.pf-cell .num{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.pf-cell.max{background:#eaf0ff}
+.pf-cell.max .num{color:var(--brand)}
+.pf-divline{height:1px;background:var(--line);margin:12px 2px}
+/* 구간별 달성률 */
+.ach-title{font-size:14px;font-weight:800;margin-bottom:12px}
+.ach-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:13px}
+.ach-row:last-child{margin-bottom:2px}
+.ach-icobox{position:relative;flex-shrink:0;width:52px}
+.ach-ico{width:52px;height:52px;border-radius:14px;background:#eef1fb;display:flex;align-items:center;justify-content:center;font-size:25px}
+.ach-score{position:absolute;top:-7px;left:-4px;font-size:10.5px;font-weight:800;color:#fff;
+  background:#6b82f0;padding:3px 7px;border-radius:9px;box-shadow:0 2px 5px rgba(107,130,240,.35)}
+.ach-body{flex:1;min-width:0;padding-top:1px}
+.ach-nm{font-size:14px;font-weight:800;margin-bottom:3px}
+.ach-figs{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.ach-done{font-size:16px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums}
+.ach-target{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.ach-target .u{font-size:12px;font-weight:600;color:var(--text-sub)}
+.ach-pct{font-size:12px;font-weight:700;color:var(--text-sub);font-variant-numeric:tabular-nums}
+.ach-bar{height:9px;border-radius:999px;background:#eef0f4;overflow:hidden}
+.ach-fill{height:100%;border-radius:999px;background:#6b82f0}
+
+/* ── 리스/렌탈 ── */
+.lz-card{border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.lz-card.best{border-color:var(--brand)}
+.lz-head{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.lz-logo{width:44px;height:44px;border-radius:12px;background:#eef1fb;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.lz-name{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lz-best{font-size:10px;font-weight:800;color:#fff;background:var(--brand);padding:2px 7px;border-radius:5px}
+.lz-sub{font-size:12px;color:var(--text-sub);margin-top:2px}
+.lz-price{display:flex;align-items:baseline;gap:6px;margin-bottom:10px}
+.lz-price .p{font-size:20px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums}
+.lz-price .unit{font-size:13px;color:var(--text-sub);font-weight:600}
+.lz-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.lz-tag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f1f3f6;color:#555}
+.lz-foot{display:flex;gap:8px}
+.lz-btn{flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none}
+.lz-btn.ghost{border:1px solid var(--line);background:#fff;color:var(--text)}
+.lz-btn.fill{background:var(--brand);color:#fff}
+
+/* ── 배달뉴스 ── */
+.nw-hero{border-radius:16px;background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#fff;padding:18px 16px;margin-bottom:14px;cursor:pointer}
+.nw-hero .b{display:inline-block;font-size:10px;font-weight:700;background:rgba(255,255,255,.22);padding:3px 9px;border-radius:5px;margin-bottom:9px}
+.nw-hero .t{font-size:16px;font-weight:800;line-height:1.4;margin-bottom:7px}
+.nw-hero .m{font-size:11.5px;opacity:.85}
+.nw-it{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.nw-it:last-child{border-bottom:none}
+.nw-th{width:60px;height:60px;border-radius:12px;background:#eef1fb;display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0}
+.nw-c{font-size:10.5px;font-weight:700;color:var(--brand);margin-bottom:4px}
+.nw-t{font-size:14px;font-weight:700;line-height:1.4;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nw-m{font-size:11.5px;color:var(--text-sub)}
+
+/* ── 정비소 ── */
+.gx-loc{display:flex;align-items:center;gap:10px;background:#eef1fb;border-radius:12px;padding:12px 14px;margin-bottom:14px;cursor:pointer}
+.gx-loc .i{font-size:20px}
+.gx-loc .t{font-size:13px;font-weight:700;color:var(--brand-2)}
+.gx-loc .s{font-size:11px;color:var(--text-sub);margin-top:2px}
+.gx-card{border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.gx-h{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.gx-ic{width:44px;height:44px;border-radius:12px;background:#eef1fb;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.gx-nm{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap}
+.gx-247{font-size:10px;font-weight:700;color:#fff;background:var(--brand);padding:2px 7px;border-radius:4px}
+.gx-open{font-size:10px;font-weight:700;color:#fff;background:#1e9e5a;padding:2px 7px;border-radius:4px}
+.gx-s{font-size:12px;color:var(--text-sub)}
+.gx-d{text-align:right;flex-shrink:0}
+.gx-dn{font-size:15px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums}
+.gx-dr{font-size:11px;color:#f59e0b}
+.gx-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.gx-tag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#f1f3f6;color:#555}
+.gx-tag.hot{background:#eaf0ff;color:var(--brand)}
+.gx-foot{display:flex;gap:8px}
+.gx-btn{flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none}
+.gx-btn.ghost{border:1px solid var(--line);background:#fff;color:var(--text)}
+.gx-btn.fill{background:var(--brand);color:#fff}
+
+/* ── 용품샵 ── */
+.sh-promo{display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,#1c1e21,#2b2f3a);border-radius:14px;padding:16px;margin-bottom:14px;cursor:pointer}
+.sh-promo .tt{color:#fff;font-size:14px;font-weight:800;margin-bottom:3px}
+.sh-promo .ss{color:rgba(255,255,255,.7);font-size:11px}
+.sh-promo .tag{font-size:11px;font-weight:800;color:#fff;background:var(--brand);padding:6px 12px;border-radius:8px;flex-shrink:0}
+.sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sh-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer}
+.sh-th{aspect-ratio:1;background:#f6f7f9;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
+.sh-bdg{position:absolute;top:8px;left:8px;font-size:10px;font-weight:800;color:#fff;background:var(--brand);padding:2px 7px;border-radius:5px}
+.sh-bdg.best{background:#1c1e21}
+.sh-bd{padding:10px 12px 12px}
+.sh-br{font-size:10.5px;color:var(--text-sub);font-weight:600;margin-bottom:2px}
+.sh-nm{font-size:13px;font-weight:700;line-height:1.35;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:35px}
+.sh-pr{display:flex;align-items:baseline;gap:6px}
+.sh-dc{font-size:13px;font-weight:800;color:#e11d48}
+.sh-p{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.sh-rt{font-size:11px;color:#f59e0b;margin-top:5px}
+
+/* ── 우리지역 협력사 ── */
+.pt-region{display:flex;gap:8px;margin-bottom:14px}
+.pt-sel{flex:1;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-weight:600;
+  color:var(--text);background:#fff;font-family:inherit;appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8f98' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+.pt-sel:focus{outline:none;border-color:var(--brand)}
+.pt-sel:disabled{background-color:#f6f7f9;color:#b9bec6;cursor:not-allowed}
+.pt-res{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text-sub);margin-bottom:8px}
+.pt-res b{color:var(--text);font-weight:700}
+.pt-loc{font-size:11px;font-weight:700;color:var(--brand);background:#eaf0ff;padding:3px 9px;border-radius:6px}
+.pt-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px}
+.pt-card.feat{border-color:var(--brand)}
+.pt-h{display:flex;align-items:center;gap:11px;padding:14px 16px 10px}
+.pt-logo{width:46px;height:46px;border-radius:13px;background:#eef1fb;display:flex;align-items:center;justify-content:center;font-size:23px;flex-shrink:0}
+.pt-nm{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.pt-ftag{font-size:10px;font-weight:700;color:#fff;background:var(--brand);padding:2px 7px;border-radius:4px}
+.pt-htag{font-size:10px;font-weight:700;color:#fff;background:#e8590c;padding:2px 7px;border-radius:4px}
+.pt-addr{font-size:12px;color:var(--text-sub)}
+.pt-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pt-stat{background:#fff;padding:11px 8px;text-align:center}
+.pt-sv{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.pt-sl{font-size:10.5px;color:var(--text-sub);margin-top:2px}
+.pt-desc{padding:12px 16px 2px;font-size:12.5px;color:var(--post-body);line-height:1.6}
+.pt-promo{padding:10px 16px 0}
+.pt-pt{font-size:11px;font-weight:700;color:var(--brand);margin-bottom:7px}
+.pt-pr{display:flex;align-items:flex-start;gap:8px;padding:6px 0}
+.pt-pico{font-size:14px;flex-shrink:0;line-height:1.5}
+.pt-ptx{font-size:12.5px;color:var(--post-body);line-height:1.5}
+.pt-ptx b{color:#e8590c;font-weight:700}
+.pt-foot{display:flex;gap:8px;padding:12px 16px 14px}
+.pt-btn{flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none}
+.pt-btn.ghost{border:1px solid var(--line);background:#fff;color:var(--text)}
+.pt-btn.fill{background:var(--brand);color:#fff}
+.pt-empty{text-align:center;color:var(--text-sub);font-size:13px;line-height:1.7;padding:30px 16px}
+.pt-empty .e{font-size:40px;margin-bottom:10px}
+
+/* ═══════════ 하단 탭 뷰 ═══════════ */
+.tabview{position:absolute;left:0;right:0;top:54px;bottom:58px;z-index:15;
+  background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none}
+.tabview.show{display:block}
+.tv-head{padding:16px;border-bottom:1px solid var(--line)}
+.tv-title{font-size:20px;font-weight:800;letter-spacing:-.02em}
+
+/* ── 숏폼 영상 ── */
+#view-video{background:#000;top:54px;bottom:58px}
+.shorts{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch}
+.short{height:100%;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:60px}
+.short.s1{background:linear-gradient(160deg,#6366f1,#4338ca)}
+.short.s2{background:linear-gradient(160deg,#ec4899,#a855f7)}
+.short.s3{background:linear-gradient(160deg,#f97316,#ea580c)}
+.short.s4{background:linear-gradient(160deg,#10b981,#059669)}
+.short .play-hint{position:absolute;top:14px;left:16px;font-size:12px;color:rgba(255,255,255,.85);
+  background:rgba(0,0,0,.3);padding:4px 10px;border-radius:20px}
+.short-info{position:absolute;left:16px;right:80px;bottom:24px;text-align:left}
+.short-user{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.short-pfp{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);
+  display:grid;place-items:center;font-size:19px}
+.short-name{font-size:15px;font-weight:800}
+.short-cap{font-size:14px;line-height:1.45;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.short-acts{position:absolute;right:14px;bottom:30px;display:flex;flex-direction:column;gap:20px;align-items:center}
+.short-act{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;
+  background:none;border:none;color:#fff;cursor:pointer;font-family:inherit}
+.short-act .ico{font-size:30px}
+.short-act.on{color:#e0457b}
+
+/* ── 글쓰기 ── */
+.cmp-area{padding:16px}
+.cmp-row{display:flex;gap:12px;margin-bottom:14px}
+.cmp-pfp{width:44px;height:44px;border-radius:50%;background:var(--avatar-bg);display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.cmp-name{font-weight:700;font-size:15px;margin-bottom:6px}
+.cmp-input{width:100%;border:none;outline:none;font-family:inherit;font-size:16px;resize:none;
+  min-height:140px;color:var(--text);line-height:1.5;background:none}
+.cmp-input::placeholder{color:var(--text-sub)}
+.cmp-tools{display:flex;gap:18px;padding:14px 16px;border-top:1px solid var(--line);font-size:24px;color:var(--brand)}
+.cmp-tools button{background:none;border:none;cursor:pointer;font-size:24px}
+.cmp-foot{padding:14px 16px}
+.cmp-post{width:100%;background:var(--brand);color:#fff;border:none;border-radius:24px;
+  padding:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ── 메시지 ── */
+.msg-it{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.msg-pfp{width:50px;height:50px;border-radius:50%;background:var(--avatar-bg);display:grid;place-items:center;font-size:24px;flex-shrink:0;position:relative}
+.msg-on{position:absolute;right:1px;bottom:1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #fff}
+.msg-body{flex:1;min-width:0}
+.msg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.msg-name{font-weight:700;font-size:15px}
+.msg-time{font-size:12px;color:var(--text-sub)}
+.msg-prev{font-size:13.5px;color:var(--text-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg-unread{flex-shrink:0;min-width:20px;height:20px;border-radius:10px;background:var(--brand);
+  color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 6px}
+
+/* ── 프로필 ── */
+.pr-head{padding:22px 16px 18px;display:flex;align-items:center;gap:16px}
+.pr-pfp{width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  display:grid;place-items:center;font-size:36px;color:#fff;flex-shrink:0}
+.pr-name{font-size:19px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pr-sub{font-size:13px;color:var(--text-sub);margin-top:4px}
+.pr-stats{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-stat{flex:1;text-align:center;padding:14px 0;cursor:pointer}
+.pr-stat:not(:last-child){border-right:1px solid var(--line)}
+.pr-sv{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.pr-sl{font-size:11.5px;color:var(--text-sub);margin-top:2px}
+.pr-actions{display:flex;gap:8px;padding:14px 16px}
+.pr-btn{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:none}
+.pr-btn.fill{background:var(--brand);color:#fff}
+.pr-btn.ghost{border:1px solid var(--line);background:#fff;color:var(--text)}
+.pr-gridhead{font-size:13px;font-weight:700;color:var(--text-sub);padding:6px 16px 10px;border-top:8px solid var(--bg-soft)}
+.pr-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;padding:0 0 20px}
+.pr-cell{aspect-ratio:1;display:grid;place-items:center;font-size:34px;color:#fff}
+.pr-cell.g1{background:linear-gradient(135deg,#cbd2db,#9aa3af)}
+.pr-cell.g2{background:linear-gradient(135deg,#a5b4fc,#6366f1)}
+.pr-cell.g3{background:linear-gradient(135deg,#fda4af,#f43f5e)}
+.pr-cell.g4{background:linear-gradient(135deg,#6ee7b7,#10b981)}
+.pr-cell.g5{background:linear-gradient(135deg,#fcd34d,#f59e0b)}
+.pr-cell.g6{background:linear-gradient(135deg,#c4b5fd,#8b5cf6)}
+
+/* ── 내 주변 주유소 ── */
+.gs-sortbar{display:flex;gap:8px;margin-bottom:6px}
+.gs-sort{flex:1;padding:9px 0;border:1px solid var(--line);border-radius:10px;background:#fff;
+  font-size:13px;font-weight:700;color:var(--text-sub);cursor:pointer;font-family:inherit}
+.gs-sort.on{border-color:var(--brand);background:var(--brand);color:#fff}
+.gs-meta{font-size:12px;color:var(--text-sub);margin:10px 2px 4px}
+.gs-card{display:flex;align-items:center;gap:13px;border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px;margin-bottom:10px}
+.gs-card.low{border-color:#1e9e5a}
+.gs-logo{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex-shrink:0;
+  background:#eef1fb}
+.gs-mid{flex:1;min-width:0}
+.gs-nm{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.gs-low{font-size:10px;font-weight:800;color:#fff;background:#1e9e5a;padding:2px 7px;border-radius:4px}
+.gs-brand{font-size:11.5px;color:var(--text-sub)}
+.gs-sub{font-size:12px;color:var(--text-sub);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap}
+.gs-sub .d{color:var(--brand);font-weight:700}
+.gs-price{text-align:right;flex-shrink:0}
+.gs-p{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.gs-card.low .gs-p{color:#1e9e5a}
+.gs-pl{font-size:10.5px;color:var(--text-sub);margin-top:3px}
+.gs-diesel{font-size:11px;color:var(--text-sub);margin-top:4px;font-variant-numeric:tabular-nums}
+
+/* ── 신차/중고차 ── */
+.cr-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px}
+.cr-photo{height:150px;display:grid;place-items:center;font-size:60px;position:relative;color:#fff}
+.cr-photo.p1{background:linear-gradient(150deg,#60a5fa,#2563eb)}
+.cr-photo.p2{background:linear-gradient(150deg,#34d399,#059669)}
+.cr-photo.p3{background:linear-gradient(150deg,#fbbf24,#f59e0b)}
+.cr-photo.p4{background:linear-gradient(150deg,#a78bfa,#7c3aed)}
+.cr-photo.p5{background:linear-gradient(150deg,#fb7185,#e11d48)}
+.cr-photo.p6{background:linear-gradient(150deg,#94a3b8,#475569)}
+.cr-cond{position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:6px}
+.cr-cond.new{background:#fff;color:var(--brand)}
+.cr-cond.used{background:rgba(0,0,0,.45);color:#fff}
+.cr-deal{position:absolute;top:10px;right:10px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:6px;background:#e11d48;color:#fff}
+.cr-body{padding:13px 16px 14px}
+.cr-nm{font-size:16px;font-weight:800;margin-bottom:4px}
+.cr-spec{font-size:12.5px;color:var(--text-sub);display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px}
+.cr-spec .sep{color:var(--line)}
+.cr-price{display:flex;align-items:baseline;justify-content:space-between}
+.cr-p{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}
+.cr-p .u{font-size:13px;font-weight:600;color:var(--text-sub);margin-left:1px}
+.cr-month{font-size:12px;color:var(--brand);font-weight:700}
+.cr-foot{display:flex;gap:8px;margin-top:12px}
+.cr-btn{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none}
+.cr-btn.ghost{border:1px solid var(--line);background:#fff;color:var(--text)}
+.cr-btn.fill{background:var(--brand);color:#fff}
+.cr-empty{text-align:center;color:var(--text-sub);font-size:13px;padding:30px 16px}
+
+/* ── 내 주변 맛집 ── */
+.ft-card{display:flex;gap:13px;border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:11px}
+.ft-thumb{width:74px;height:74px;border-radius:14px;display:grid;place-items:center;font-size:34px;flex-shrink:0;color:#fff}
+.ft-thumb.c1{background:linear-gradient(150deg,#fb923c,#ea580c)}
+.ft-thumb.c2{background:linear-gradient(150deg,#f87171,#dc2626)}
+.ft-thumb.c3{background:linear-gradient(150deg,#60a5fa,#2563eb)}
+.ft-thumb.c4{background:linear-gradient(150deg,#34d399,#059669)}
+.ft-thumb.c5{background:linear-gradient(150deg,#a78bfa,#7c3aed)}
+.ft-thumb.c6{background:linear-gradient(150deg,#fbbf24,#d97706)}
+.ft-mid{flex:1;min-width:0}
+.ft-nm{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.ft-open{font-size:10px;font-weight:700;color:#fff;background:#1e9e5a;padding:2px 7px;border-radius:4px}
+.ft-open.closed{background:#9aa0a8}
+.ft-cat{font-size:12px;color:var(--text-sub)}
+.ft-rate{font-size:12.5px;margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ft-star{color:#f59e0b;font-weight:700;font-variant-numeric:tabular-nums}
+.ft-star span{color:var(--text-sub);font-weight:400}
+.ft-dist{color:var(--brand);font-weight:700}
+.ft-menu{font-size:12px;color:var(--text-sub);margin-top:7px;background:#f6f7f9;border-radius:8px;
+  padding:6px 10px;display:inline-block}
+.ft-menu b{color:var(--text);font-weight:700}
+
+/* ── 랭킹 순위 ── */
+.rk-podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;
+  background:linear-gradient(160deg,var(--brand),var(--brand-2));border-radius:18px;
+  padding:22px 12px 18px;margin-bottom:16px}
+.rk-pod{flex:1;max-width:106px;text-align:center;color:#fff}
+.rk-pcrown{font-size:20px;height:24px}
+.rk-pavatar{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.25);
+  display:grid;place-items:center;font-size:26px;margin:4px auto 7px;border:2px solid rgba(255,255,255,.6)}
+.rk-pod.first .rk-pavatar{width:64px;height:64px;font-size:31px;border-color:#ffd84d}
+.rk-pname{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk-pcnt{font-size:13px;font-weight:700;opacity:.95;margin-top:2px;font-variant-numeric:tabular-nums}
+.rk-pbar{margin-top:9px;border-radius:9px 9px 0 0;background:rgba(255,255,255,.22);
+  display:grid;place-items:center;font-size:18px;font-weight:800}
+.rk-pod.first .rk-pbar{height:64px;background:rgba(255,255,255,.34)}
+.rk-pod.second .rk-pbar{height:46px}
+.rk-pod.third .rk-pbar{height:34px}
+
+.rk-row{display:flex;align-items:center;gap:13px;padding:12px 6px;border-bottom:1px solid var(--line)}
+.rk-rank{width:26px;text-align:center;font-size:16px;font-weight:800;color:var(--text-sub);font-variant-numeric:tabular-nums;flex-shrink:0}
+.rk-avatar{width:42px;height:42px;border-radius:50%;background:var(--avatar-bg);display:grid;place-items:center;font-size:21px;flex-shrink:0}
+.rk-info{flex:1;min-width:0}
+.rk-name{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rk-center{font-size:12px;color:var(--text-sub);margin-top:2px}
+.rk-cnt{text-align:right;flex-shrink:0}
+.rk-cnt b{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.rk-cnt .u{font-size:11px;color:var(--text-sub);margin-left:1px}
+.rk-up{font-size:11px;color:#1e9e5a;font-weight:700}
+.rk-down{font-size:11px;color:#e11d48;font-weight:700}
+.rk-row.me{background:#eef1fb;border-radius:12px;border-bottom:none;margin:6px 0}
+.rk-row.me .rk-name{color:var(--brand)}
+.rk-mebadge{font-size:10px;font-weight:800;color:#fff;background:var(--brand);padding:2px 7px;border-radius:4px}
+.rk-myrank{display:flex;align-items:center;justify-content:space-between;border:1px dashed var(--brand);
+  border-radius:14px;padding:12px 16px;margin-bottom:8px;background:#f7f9ff}
+.rk-myrank .l{font-size:13px;color:var(--text-sub);font-weight:600}
+.rk-myrank .r{font-size:15px;font-weight:800;color:var(--brand)}
+
+/* ── 프로필 꾸미기 ── */
+.pr-bio{font-size:13px;color:var(--post-body);margin-top:7px;line-height:1.5}
+.badge.deco{background:#eef1fb;color:var(--brand-2);font-weight:700}
+.pr-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+
+/* 편집 오버레이 */
+.pedit{position:absolute;inset:0;z-index:65;background:var(--bg);
+  display:flex;flex-direction:column;transform:translateY(100%);transition:transform .28s ease}
+.pedit.show{transform:translateY(0)}
+.pedit-top{display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 16px;
+  border-bottom:1px solid var(--line);background:var(--bg-soft)}
+.pedit-top button{background:none;border:none;font-family:inherit;font-size:15px;cursor:pointer;color:var(--text-sub)}
+.pedit-top .save{color:var(--brand);font-weight:800}
+.pedit-top .ttl{font-size:16px;font-weight:800}
+.pedit-body{flex:1;overflow-y:auto;padding:18px 16px 30px}
+.pe-prev{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;margin-bottom:20px;background:var(--bg-soft)}
+.pe-prev-av{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;font-size:28px;color:#fff;flex-shrink:0}
+.pe-prev-nm{font-size:16px;font-weight:800}
+.pe-prev-bio{font-size:12px;color:var(--text-sub);margin-top:3px}
+.pe-label{font-size:13px;font-weight:800;margin:18px 0 9px}
+.pe-label:first-child{margin-top:0}
+.pe-emojis{display:flex;flex-wrap:wrap;gap:8px}
+.pe-emoji{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:#fff;
+  display:grid;place-items:center;font-size:24px;cursor:pointer}
+.pe-emoji.on{border-color:var(--brand);background:#eef1fb;box-shadow:0 0 0 2px rgba(37,99,235,.18)}
+.pe-emoji.none{font-size:12px;color:var(--text-sub);font-weight:700}
+.pe-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:15px;font-family:inherit;color:var(--text)}
+.pe-input:focus{outline:none;border-color:var(--brand)}
+.pe-area{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:14px;font-family:inherit;color:var(--text);min-height:74px;resize:none;line-height:1.5}
+.pe-area:focus{outline:none;border-color:var(--brand)}
+.pe-count{font-size:11px;color:var(--text-sub);text-align:right;margin-top:5px}
+.pe-badges{display:flex;flex-wrap:wrap;gap:8px}
+.pe-bchip{padding:9px 13px;border-radius:22px;border:1px solid var(--line);background:#fff;
+  font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit}
+.pe-bchip.on{border-color:var(--brand);background:var(--brand);color:#fff}
+.pe-hint{font-size:11.5px;color:var(--text-sub);margin-top:7px}
+</style>
+</head>
+
+<body>
+<div class="app" id="app">
+
+  <!-- ═══════════ 상단 헤더 ═══════════ -->
+  <header class="topbar">
+    <button class="icon-btn" id="menuBtn" aria-label="메뉴">☰</button>
+    <div class="logo">slyde 🛵</div>
+    <button class="icon-btn" aria-label="알림">🔔<span class="dot"></span></button>
+  </header>
+
+  <!-- ═══════════ 스크롤 본문 ═══════════ -->
+  <main class="scroll">
+
+    <!-- 글 작성 프롬프트 -->
+    <section class="composer">
+      <div class="pfp">🛵</div>
+      <div class="ph">무슨 일이 있나요?</div>
+    </section>
+
+    <!-- ───────── 피드 글 1: 희철 ───────── -->
+    <article class="post">
+      <div class="post-head">
+        <div class="pfp">🛵</div>
+        <div class="who">
+          <div class="name-row">
+            <span class="uname">희철</span>
+            <span class="badge personal">개인회원</span>
+            <span class="time">14분</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">엑스맥스 팔아요</div>
+      <div class="photo">🛵</div>
+      <div class="actions">
+        <button class="act heart"><span class="ico">💜</span><span class="cnt">1</span></button>
+        <button class="act"><span class="ico">💬</span><span class="cnt">1</span></button>
+        <button class="act"><span class="ico">🔁</span><span class="cnt">0</span></button>
+        <button class="act share"><span class="ico">📤</span><span class="cnt">1</span></button>
+      </div>
+    </article>
+
+    <!-- ───────── 피드 글 2: 라이더왕 ───────── -->
+    <article class="post">
+      <div class="post-head">
+        <div class="pfp">🏍️</div>
+        <div class="who">
+          <div class="name-row">
+            <span class="uname">라이더왕</span><span class="verify">✔️</span>
+            <span class="badge partner">협력사회원</span>
+            <span class="time">12분</span>
+          </div>
+          <div class="service">번개배송</div>
+        </div>
+      </div>
+      <div class="body">오늘 점심 피크 미쳤다... 1시간에 9콜 뛰고 왔음 ㅋㅋ
+다들 안전운행 하세요 🔥</div>
+      <div class="actions">
+        <button class="act heart"><span class="ico">💜</span><span class="cnt">142</span></button>
+        <button class="act"><span class="ico">💬</span><span class="cnt">23</span></button>
+        <button class="act"><span class="ico">🔁</span><span class="cnt">4</span></button>
+        <button class="act share"><span class="ico">📤</span><span class="cnt">0</span></button>
+      </div>
+    </article>
+
+    <!-- ───────── 피드 글 3: 초보기사_민수 ───────── -->
+    <article class="post">
+      <div class="post-head">
+        <div class="pfp">👦</div>
+        <div class="who">
+          <div class="name-row">
+            <span class="uname">초보기사_민수</span>
+            <span class="badge personal">개인회원</span>
+            <span class="time">38분</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">전기 이륜차 입문했는데 한 번 충전으로 어디까지 가시나요? 도심 위주로 뛰는데 너무 자주 충전하는 느낌이라 ㅠㅠ</div>
+      <div class="actions">
+        <button class="act heart"><span class="ico">💜</span><span class="cnt">31</span></button>
+        <button class="act"><span class="ico">💬</span><span class="cnt">56</span></button>
+        <button class="act"><span class="ico">🔁</span><span class="cnt">2</span></button>
+        <button class="act share"><span class="ico">📤</span><span class="cnt">0</span></button>
+      </div>
+    </article>
+
+    <!-- ───────── 피드 글 4: 올카 (광고) ───────── -->
+    <article class="post">
+      <div class="post-head">
+        <div class="pfp">🚗</div>
+        <div class="who">
+          <div class="name-row">
+            <span class="uname">올카</span>
+            <span class="badge biz">기업회원</span>
+            <span class="time">광고</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">라이더 전용 차량 리스, 첫 달 0원! 신용 조회 없이 바로 상담 가능합니다. slyde 회원 추가 혜택까지 🎁</div>
+      <div class="card-media blue">🚙</div>
+      <div class="cta">
+        <span class="src">올카</span>
+        <span class="go">상담 신청 →</span>
+      </div>
+      <div class="actions">
+        <button class="act heart"><span class="ico">💜</span><span class="cnt">67</span></button>
+        <button class="act"><span class="ico">💬</span><span class="cnt">8</span></button>
+        <button class="act"><span class="ico">🔁</span><span class="cnt">1</span></button>
+        <button class="act share"><span class="ico">📤</span><span class="cnt">0</span></button>
+      </div>
+    </article>
+
+    <!-- ───────── 피드 글 5: 강남터줏대감 ───────── -->
+    <article class="post">
+      <div class="post-head">
+        <div class="pfp">🛵</div>
+        <div class="who">
+          <div class="name-row">
+            <span class="uname">강남터줏대감</span><span class="verify">✔️</span>
+            <span class="badge partner">협력사회원</span>
+            <span class="time">1시간</span>
+          </div>
+          <div class="service">퀵세이버</div>
+        </div>
+      </div>
+      <div class="body">강남대로 공사 구간 우회로 공유합니다. 테헤란로 쪽으로 빠지는 게 훨씬 빨라요. 지도 첨부 ⬇️</div>
+      <div class="card-media green">🗺️</div>
+      <div class="actions">
+        <button class="act heart"><span class="ico">💜</span><span class="cnt">203</span></button>
+        <button class="act"><span class="ico">💬</span><span class="cnt">41</span></button>
+        <button class="act"><span class="ico">🔁</span><span class="cnt">28</span></button>
+        <button class="act share"><span class="ico">📤</span><span class="cnt">0</span></button>
+      </div>
+    </article>
+
+    <!-- ───────── 피드 글 6: 야간전문 ───────── -->
+    <article class="post">
+      <div class="post-head">
+        <div class="pfp">🍌</div>
+        <div class="who">
+          <div class="name-row">
+            <span class="uname">야간전문</span>
+            <span class="badge personal">개인회원</span>
+            <span class="time">2시간</span>
+          </div>
+        </div>
+      </div>
+      <div class="body">새벽 배달 단골손님이 핫팩 챙겨주심... 이 맛에 야간 뛴다 진짜 🥹</div>
+      <div class="actions">
+        <button class="act heart"><span class="ico">💜</span><span class="cnt">188</span></button>
+        <button class="act"><span class="ico">💬</span><span class="cnt">17</span></button>
+        <button class="act"><span class="ico">🔁</span><span class="cnt">3</span></button>
+        <button class="act share"><span class="ico">📤</span><span class="cnt">0</span></button>
+      </div>
+    </article>
+
+    <!-- ───────── 피드 글 7: 안전제일 ───────── -->
+    <article class="post">
+      <div class="post-head">
+        <div class="pfp">🦺</div>
+        <div class="who">
+          <div class="name-row">
+            <span class="uname">안전제일</span><span class="verify">✔️</span>
+            <span class="badge partner">협력사회원</span>
+            <span class="time">3시간</span>
+          </div>
+          <div class="service">번개배송</div>
+        </div>
+      </div>
+      <div class="body">빗길 사고 날 뻔... 다들 우천 시 속도 진짜 줄이세요. 보험 처리도 slyde 사고접수로 5분 만에 끝냈습니다.</div>
+      <div class="actions">
+        <button class="act heart"><span class="ico">💜</span><span class="cnt">96</span></button>
+        <button class="act"><span class="ico">💬</span><span class="cnt">34</span></button>
+        <button class="act"><span class="ico">🔁</span><span class="cnt">12</span></button>
+        <button class="act share"><span class="ico">📤</span><span class="cnt">0</span></button>
+      </div>
+    </article>
+
+    <div class="feed-end">— 피드의 끝이에요 —</div>
+  </main>
+
+  <!-- ═══════════ 하단 탭바 ═══════════ -->
+  <nav class="tabbar">
+    <button class="tab active" data-view="home" aria-label="홈">🏠</button>
+    <button class="tab" data-view="video" aria-label="숏폼">▶️</button>
+    <button class="tab" data-view="compose" aria-label="작성">➕</button>
+    <button class="tab" data-view="messages" aria-label="메시지">💬</button>
+    <button class="tab" data-view="profile" aria-label="프로필">👤</button>
+  </nav>
+
+  <!-- ═══════════ 숏폼 영상 뷰 ═══════════ -->
+  <div class="tabview" id="view-video">
+    <div class="shorts">
+      <div class="short s1">🛵
+        <div class="play-hint">▶ 탭하면 재생</div>
+        <div class="short-info">
+          <div class="short-user"><div class="short-pfp">🛵</div><div class="short-name">번개라이더</div></div>
+          <div class="short-cap">우천 시 코너링 이렇게 하세요 🏍️💨 #안전운행 #꿀팁</div>
+        </div>
+        <div class="short-acts">
+          <button class="short-act heart"><span class="ico">🤍</span><span class="c">1.2천</span></button>
+          <button class="short-act"><span class="ico">💬</span><span class="c">84</span></button>
+          <button class="short-act"><span class="ico">📤</span><span class="c">공유</span></button>
+        </div>
+      </div>
+      <div class="short s2">🌧️
+        <div class="play-hint">▶ 탭하면 재생</div>
+        <div class="short-info">
+          <div class="short-user"><div class="short-pfp">🦺</div><div class="short-name">안전제일</div></div>
+          <div class="short-cap">장마철 미끄럼 방지 타이어 추천 비교 🛞 #장비리뷰</div>
+        </div>
+        <div class="short-acts">
+          <button class="short-act heart"><span class="ico">🤍</span><span class="c">892</span></button>
+          <button class="short-act"><span class="ico">💬</span><span class="c">47</span></button>
+          <button class="short-act"><span class="ico">📤</span><span class="c">공유</span></button>
+        </div>
+      </div>
+      <div class="short s3">🍱
+        <div class="play-hint">▶ 탭하면 재생</div>
+        <div class="short-info">
+          <div class="short-user"><div class="short-pfp">🍱</div><div class="short-name">월수입공개</div></div>
+          <div class="short-cap">피크타임만 뛰어서 하루 18만원 찍은 동선 공개 🔥 #실적</div>
+        </div>
+        <div class="short-acts">
+          <button class="short-act heart"><span class="ico">🤍</span><span class="c">3.4천</span></button>
+          <button class="short-act"><span class="ico">💬</span><span class="c">221</span></button>
+          <button class="short-act"><span class="ico">📤</span><span class="c">공유</span></button>
+        </div>
+      </div>
+      <div class="short s4">⛽
+        <div class="play-hint">▶ 탭하면 재생</div>
+        <div class="short-info">
+          <div class="short-user"><div class="short-pfp">⛽</div><div class="short-name">알뜰라이더</div></div>
+          <div class="short-cap">기름값 아끼는 주유 타이밍, 이거 모르면 손해 ⛽ #절약</div>
+        </div>
+        <div class="short-acts">
+          <button class="short-act heart"><span class="ico">🤍</span><span class="c">756</span></button>
+          <button class="short-act"><span class="ico">💬</span><span class="c">33</span></button>
+          <button class="short-act"><span class="ico">📤</span><span class="c">공유</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 글쓰기 뷰 ═══════════ -->
+  <div class="tabview" id="view-compose">
+    <div class="tv-head"><div class="tv-title">새 글 작성</div></div>
+    <div class="cmp-area">
+      <div class="cmp-row">
+        <div class="cmp-pfp">🛵</div>
+        <div style="flex:1">
+          <div class="cmp-name">환타 님</div>
+          <textarea class="cmp-input" placeholder="무슨 일이 있나요? 오늘의 배달 이야기를 들려주세요"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="cmp-tools">
+      <button onclick="sToast('사진 첨부는 준비 중입니다')">🖼️</button>
+      <button onclick="sToast('카메라는 준비 중입니다')">📷</button>
+      <button onclick="sToast('위치 추가는 준비 중입니다')">📍</button>
+      <button onclick="sToast('해시태그를 추가하세요')">#️⃣</button>
+    </div>
+    <div class="cmp-foot">
+      <button class="cmp-post" onclick="sToast('게시되었습니다 ✅')">게시하기</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ 메시지 뷰 ═══════════ -->
+  <div class="tabview" id="view-messages">
+    <div class="tv-head"><div class="tv-title">메시지</div></div>
+    <div class="msg-it" onclick="sToast('대화 기능은 준비 중입니다')">
+      <div class="msg-pfp">🛵<span class="msg-on"></span></div>
+      <div class="msg-body"><div class="msg-top"><span class="msg-name">번개라이더</span><span class="msg-time">방금</span></div><div class="msg-prev">오늘 청라 쪽 콜 많던데 가보셨어요?</div></div>
+      <span class="msg-unread">2</span>
+    </div>
+    <div class="msg-it" onclick="sToast('대화 기능은 준비 중입니다')">
+      <div class="msg-pfp">🏢</div>
+      <div class="msg-body"><div class="msg-top"><span class="msg-name">인천서구센터</span><span class="msg-time">12분</span></div><div class="msg-prev">[공지] 이번 주 피크타임 프로모션 안내드립니다.</div></div>
+      <span class="msg-unread">1</span>
+    </div>
+    <div class="msg-it" onclick="sToast('대화 기능은 준비 중입니다')">
+      <div class="msg-pfp">🦺</div>
+      <div class="msg-body"><div class="msg-top"><span class="msg-name">안전제일</span><span class="msg-time">1시간</span></div><div class="msg-prev">타이어 정보 공유 감사합니다 👍</div></div>
+    </div>
+    <div class="msg-it" onclick="sToast('대화 기능은 준비 중입니다')">
+      <div class="msg-pfp">🛞</div>
+      <div class="msg-body"><div class="msg-top"><span class="msg-name">스피드타이어</span><span class="msg-time">어제</span></div><div class="msg-prev">예약하신 타이어 입고 완료되었습니다.</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 프로필 뷰 ═══════════ -->
+  <div class="tabview" id="view-profile">
+    <div class="pr-head">
+      <div class="pr-pfp" id="pr-avatar">🛵</div>
+      <div style="min-width:0">
+        <div class="pr-name" id="pr-nameLine"></div>
+        <div class="pr-sub" id="pr-sub">인천서구센터 · @fanta_rider</div>
+        <div class="pr-badges" id="pr-badges"></div>
+        <div class="pr-bio" id="pr-bio"></div>
+      </div>
+    </div>
+    <div class="pr-stats">
+      <div class="pr-stat" onclick="sToast('내 게시글 보기')"><div class="pr-sv">128</div><div class="pr-sl">게시글</div></div>
+      <div class="pr-stat" onclick="sToast('팔로워 목록')"><div class="pr-sv">2,418</div><div class="pr-sl">팔로워</div></div>
+      <div class="pr-stat" onclick="sToast('팔로잉 목록')"><div class="pr-sv">312</div><div class="pr-sl">팔로잉</div></div>
+    </div>
+    <div class="pr-actions">
+      <button class="pr-btn fill" onclick="openScreen('perfScreen')">📊 내 실적 보기</button>
+      <button class="pr-btn ghost" onclick="openProfileEdit()">프로필 편집</button>
+    </div>
+    <div class="pr-gridhead">📷 내 게시글</div>
+    <div class="pr-grid">
+      <div class="pr-cell g1" onclick="sToast('게시글 상세는 준비 중입니다')">🛵</div>
+      <div class="pr-cell g2" onclick="sToast('게시글 상세는 준비 중입니다')">🌧️</div>
+      <div class="pr-cell g3" onclick="sToast('게시글 상세는 준비 중입니다')">🍱</div>
+      <div class="pr-cell g4" onclick="sToast('게시글 상세는 준비 중입니다')">⛽</div>
+      <div class="pr-cell g5" onclick="sToast('게시글 상세는 준비 중입니다')">🏍️</div>
+      <div class="pr-cell g6" onclick="sToast('게시글 상세는 준비 중입니다')">🌃</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 프로필 편집 ═══════════ -->
+  <div class="pedit" id="profileEdit">
+    <div class="pedit-top">
+      <button onclick="closeProfileEdit()">취소</button>
+      <span class="ttl">프로필 편집</span>
+      <button class="save" onclick="saveProfile()">저장</button>
+    </div>
+    <div class="pedit-body">
+      <div class="pe-prev">
+        <div class="pe-prev-av" id="pe-prev-av">🛵</div>
+        <div style="min-width:0">
+          <div class="pe-prev-nm" id="pe-prev-nm">환타 님</div>
+          <div class="pe-prev-bio" id="pe-prev-bio">소개를 입력해 보세요</div>
+        </div>
+      </div>
+
+      <div class="pe-label">프로필 아바타</div>
+      <div class="pe-emojis" id="pe-avatars"></div>
+
+      <div class="pe-label">닉네임</div>
+      <input class="pe-input" id="pe-nick" maxlength="12" placeholder="닉네임" oninput="pePreview()">
+
+      <div class="pe-label">닉네임 옆 이모지</div>
+      <div class="pe-emojis" id="pe-nameEmojis"></div>
+
+      <div class="pe-label">간단 소개</div>
+      <textarea class="pe-area" id="pe-bio" maxlength="60" placeholder="나를 한 줄로 소개해 보세요 (최대 60자)" oninput="pePreview()"></textarea>
+      <div class="pe-count"><span id="pe-bioCount">0</span>/60</div>
+
+      <div class="pe-label">뱃지 꾸미기</div>
+      <div class="pe-badges" id="pe-badges"></div>
+      <div class="pe-hint">최대 3개까지 선택할 수 있어요. 협력사회원 뱃지는 기본 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 사이드 메뉴 (드로어) ═══════════ -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer">
+    <div class="drawer-head" onclick="openProfile()" style="cursor:pointer">
+      <div class="pfp">🛵</div>
+      <div>
+        <div class="dname">환타 님</div>
+        <div class="dsub">협력사회원 · 인천서구센터</div>
+      </div>
+    </div>
+    <div class="menu-list">
+      <div class="menu-section">내 활동</div>
+      <button class="menu-item" onclick="openScreen('perfScreen')"><span class="mico">📊</span>내 실적</button>
+      <button class="menu-item" onclick="openScreen('rankScreen')"><span class="mico">🏆</span>랭킹 순위</button>
+
+      <div class="menu-section">사고 · 안전</div>
+      <button class="menu-item" id="accidentBtn"><span class="mico">🚨</span>사고접수</button>
+      <button class="menu-item" onclick="openScreen('garageScreen')"><span class="mico">🔧</span>내 주변 정비소</button>
+
+      <div class="menu-section">차량 · 장비</div>
+      <button class="menu-item" onclick="openScreen('leaseScreen')"><span class="mico">🚗</span>리스/렌탈</button>
+      <button class="menu-item" onclick="openScreen('carScreen')"><span class="mico">🛵</span>신차/중고차</button>
+      <button class="menu-item" onclick="openScreen('shopScreen')"><span class="mico">🛍️</span>라이더 용품샵</button>
+
+      <div class="menu-section">주변 정보</div>
+      <button class="menu-item" onclick="openScreen('gasScreen')"><span class="mico">⛽</span>내 주변 주유소</button>
+      <button class="menu-item" onclick="openScreen('foodScreen')"><span class="mico">🍜</span>내 주변 맛집</button>
+
+      <div class="menu-section">소식 · 커뮤니티</div>
+      <button class="menu-item" onclick="openScreen('newsScreen')"><span class="mico">📰</span>배달뉴스</button>
+      <button class="menu-item" onclick="openScreen('partnerScreen')"><span class="mico">🏢</span>우리지역 협력사</button>
+    </div>
+    <button class="drawer-close" id="closeBtn">닫기</button>
+  </aside>
+
+  <!-- ═══════════ 사고접수 SDK 로딩 화면 ═══════════ -->
+  <div class="loader" id="loader">
+    <div class="badge-ico">🚨</div>
+    <div class="spinner"></div>
+    <div>
+      <div class="l-title">사고접수 모듈을 불러오는 중</div>
+      <div class="l-sub">잠시만 기다려 주세요…</div>
+    </div>
+    <div class="l-ver">SDK v2.4.1</div>
+  </div>
+
+  <!-- ═══════════ 사고접수 화면 ═══════════ -->
+  <section class="screen" id="accidentScreen">
+    <header class="screen-top">
+      <button class="back" id="accidentBack" aria-label="뒤로">←</button>
+      <div class="screen-title">사고접수</div>
+      <div style="width:34px"></div>
+    </header>
+
+    <div class="screen-body">
+      <!-- 긴급 안내 -->
+      <div class="emg">
+        <div class="emg-txt">⚠️ 인명 피해가 있다면 119·112에 먼저 신고하세요</div>
+        <button class="emg-call">긴급전화</button>
+      </div>
+
+      <!-- 사고 유형 -->
+      <div class="field">
+        <label>사고 유형</label>
+        <div class="chips">
+          <button class="chip">차량 단독</button>
+          <button class="chip">상대 차량</button>
+          <button class="chip">보행자</button>
+          <button class="chip">기타</button>
+        </div>
+      </div>
+
+      <!-- 사고 일시 -->
+      <div class="field">
+        <label>사고 일시</label>
+        <input class="input" type="datetime-local" id="accTime">
+      </div>
+
+      <!-- 사고 장소 -->
+      <div class="field">
+        <label>사고 장소</label>
+        <input class="input" type="text" placeholder="예) 인천 서구 청라대로 123 앞">
+      </div>
+
+      <!-- 사고 경위 -->
+      <div class="field">
+        <label>사고 경위</label>
+        <textarea class="input area" placeholder="어떻게 사고가 발생했는지 적어주세요"></textarea>
+      </div>
+
+      <!-- 현장 사진 -->
+      <div class="field">
+        <label>현장 사진</label>
+        <div class="upload"><span class="up-ico">📷</span><span>사진 첨부 (최대 5장)</span></div>
+      </div>
+
+      <!-- 부상 여부 -->
+      <div class="field">
+        <label>부상 여부</label>
+        <div class="chips">
+          <button class="chip">없음</button>
+          <button class="chip">경상</button>
+          <button class="chip">중상</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 제출 -->
+    <div class="screen-foot">
+      <button class="submit" id="accidentSubmit">사고 접수하기</button>
+    </div>
+
+    <!-- 접수 완료 -->
+    <div class="done" id="accidentDone">
+      <div class="done-ico">✅</div>
+      <div class="done-title">사고접수가 완료되었어요</div>
+      <div class="done-sub">접수번호 <b>#SLD-240617</b><br>담당 보험사가 곧 연락드립니다.</div>
+      <button class="done-btn" id="doneBtn">확인</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ 내 실적 화면 ═══════════ -->
+  <section class="screen" id="perfScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">내 실적</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="seg" id="perfSeg">
+        <button class="on" onclick="updatePerf('today',this)">오늘</button>
+        <button onclick="updatePerf('week',this)">주간</button>
+      </div>
+
+      <div class="pf-banner">
+        <span class="lbl" id="pf-tlabel">오늘 총 배달건수</span>
+        <span class="val"><span id="pf-count">27</span><span class="u">건</span><span class="amt" id="pf-amt">/ ₩86,400</span></span>
+      </div>
+      <div class="pf-banner">
+        <span class="lbl" id="pf-glabel">오늘 수락률</span>
+        <span style="display:flex;align-items:center;gap:10px">
+          <span class="pct" id="pf-pct">87.1%</span>
+          <span class="pf-tag" id="pf-tag">양호</span>
+        </span>
+      </div>
+
+      <div class="pf-card">
+        <div class="pf-grid">
+          <div class="pf-cell"><div class="nm"><span class="dot" style="background:#1E9E5A"></span>완료</div><div class="num" id="pf-s0">27</div></div>
+          <div class="pf-cell"><div class="nm"><span class="dot" style="background:#D9342B"></span>거절</div><div class="num" id="pf-s1">3</div></div>
+          <div class="pf-cell"><div class="nm"><span class="dot" style="background:#E8590C"></span>배차취소</div><div class="num" id="pf-s2">1</div></div>
+          <div class="pf-cell"><div class="nm"><span class="dot" style="background:#8C8472"></span>배달취소</div><div class="num" id="pf-s3">0</div></div>
+        </div>
+        <div class="pf-divline"></div>
+        <div class="pf-grid">
+          <div class="pf-cell max"><div class="nm">아침점심</div><div class="num" id="pf-p0">14</div></div>
+          <div class="pf-cell"><div class="nm">오후</div><div class="num" id="pf-p1">11</div></div>
+          <div class="pf-cell"><div class="nm">저녁</div><div class="num" id="pf-p2">2</div></div>
+          <div class="pf-cell"><div class="nm">심야</div><div class="num" id="pf-p3">0</div></div>
+        </div>
+      </div>
+
+      <div class="pf-card">
+        <div class="ach-title">구간별 달성률 · 협력사 공동목표</div>
+        <div class="ach-row">
+          <div class="ach-icobox"><div class="ach-score">+3점</div><div class="ach-ico">🌅</div></div>
+          <div class="ach-body">
+            <div class="ach-nm">오전피크</div>
+            <div class="ach-figs"><span class="ach-done">752</span><span class="ach-target">/ 558<span class="u">건</span></span><span class="ach-pct">135%</span></div>
+            <div class="ach-bar"><div class="ach-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+        <div class="ach-row">
+          <div class="ach-icobox"><div class="ach-score">+2점</div><div class="ach-ico">☀️</div></div>
+          <div class="ach-body">
+            <div class="ach-nm">오후피크</div>
+            <div class="ach-figs"><span class="ach-done">496</span><span class="ach-target">/ 396<span class="u">건</span></span><span class="ach-pct">125%</span></div>
+            <div class="ach-bar"><div class="ach-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+        <div class="ach-row">
+          <div class="ach-icobox"><div class="ach-score">+3점</div><div class="ach-ico">🌆</div></div>
+          <div class="ach-body">
+            <div class="ach-nm">저녁피크</div>
+            <div class="ach-figs"><span class="ach-done">685</span><span class="ach-target">/ 648<span class="u">건</span></span><span class="ach-pct">106%</span></div>
+            <div class="ach-bar"><div class="ach-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+        <div class="ach-row">
+          <div class="ach-icobox"><div class="ach-score">+2점</div><div class="ach-ico">🌙</div></div>
+          <div class="ach-body">
+            <div class="ach-nm">심야피크</div>
+            <div class="ach-figs"><span class="ach-done">831</span><span class="ach-target">/ 558<span class="u">건</span></span><span class="ach-pct">149%</span></div>
+            <div class="ach-bar"><div class="ach-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 리스/렌탈 화면 ═══════════ -->
+  <section class="screen" id="leaseScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">리스/렌탈</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="sec-title">배달용 이륜차 비교</div>
+      <div class="sec-sub">총 5개 업체 · 가격 낮은 순</div>
+      <div class="chiprow">
+        <button class="fchip on" onclick="pickChip(this)">전체</button>
+        <button class="fchip" onclick="pickChip(this)">PCX</button>
+        <button class="fchip" onclick="pickChip(this)">비전</button>
+        <button class="fchip" onclick="pickChip(this)">전동</button>
+        <button class="fchip" onclick="pickChip(this)">보증금0</button>
+      </div>
+
+      <div class="lz-card best">
+        <div class="lz-head"><div class="lz-logo">🏍️</div><div><div class="lz-name">라이더렌탈 <span class="lz-best">BEST</span></div><div class="lz-sub">당일 출고 · 전국 32개 직영점</div></div></div>
+        <div class="lz-price"><span class="p">198,000</span><span class="unit">원 / 월~</span></div>
+        <div class="lz-tags"><span class="lz-tag">무상정비 월1회</span><span class="lz-tag">사고 대차지원</span><span class="lz-tag">PCX·비전</span></div>
+        <div class="lz-foot"><button class="lz-btn ghost" onclick="sToast('상세 정보는 준비 중입니다')">상세 보기</button><button class="lz-btn fill" onclick="sToast('📞 라이더렌탈 연결 중...')">문의하기</button></div>
+      </div>
+
+      <div class="lz-card">
+        <div class="lz-head"><div class="lz-logo">⚡</div><div><div class="lz-name">배달오토</div><div class="lz-sub">전동 이륜차 특화 · 보증금 0원</div></div></div>
+        <div class="lz-price"><span class="p">149,000</span><span class="unit">원 / 월~</span></div>
+        <div class="lz-tags"><span class="lz-tag">보증금 0원</span><span class="lz-tag">배터리 무제한</span><span class="lz-tag">전동</span></div>
+        <div class="lz-foot"><button class="lz-btn ghost" onclick="sToast('상세 정보는 준비 중입니다')">상세 보기</button><button class="lz-btn fill" onclick="sToast('📞 배달오토 연결 중...')">문의하기</button></div>
+      </div>
+
+      <div class="lz-card">
+        <div class="lz-head"><div class="lz-logo">🔧</div><div><div class="lz-name">모토플렉스</div><div class="lz-sub">정비 무제한 · 프리미엄</div></div></div>
+        <div class="lz-price"><span class="p">210,000</span><span class="unit">원 / 월~</span></div>
+        <div class="lz-tags"><span class="lz-tag">정비 무제한</span><span class="lz-tag">대차 100%</span><span class="lz-tag">비전·NMAX</span></div>
+        <div class="lz-foot"><button class="lz-btn ghost" onclick="sToast('상세 정보는 준비 중입니다')">상세 보기</button><button class="lz-btn fill" onclick="sToast('📞 모토플렉스 연결 중...')">문의하기</button></div>
+      </div>
+
+      <div class="lz-card">
+        <div class="lz-head"><div class="lz-logo">📅</div><div><div class="lz-name">스쿠터뱅크</div><div class="lz-sub">단기 렌탈 전문 · 일 단위</div></div></div>
+        <div class="lz-price"><span class="p">18,000</span><span class="unit">원 / 일~</span></div>
+        <div class="lz-tags"><span class="lz-tag">1일부터</span><span class="lz-tag">보증금0</span><span class="lz-tag">즉시 출고</span></div>
+        <div class="lz-foot"><button class="lz-btn ghost" onclick="sToast('상세 정보는 준비 중입니다')">상세 보기</button><button class="lz-btn fill" onclick="sToast('📞 스쿠터뱅크 연결 중...')">문의하기</button></div>
+      </div>
+
+      <div class="lz-card">
+        <div class="lz-head"><div class="lz-logo">💠</div><div><div class="lz-name">이륜거래소</div><div class="lz-sub">장기 리스 · 구매 전환 가능</div></div></div>
+        <div class="lz-price"><span class="p">178,000</span><span class="unit">원 / 월~</span></div>
+        <div class="lz-tags"><span class="lz-tag">구매 전환</span><span class="lz-tag">최장 36개월</span><span class="lz-tag">PCX·NMAX</span></div>
+        <div class="lz-foot"><button class="lz-btn ghost" onclick="sToast('상세 정보는 준비 중입니다')">상세 보기</button><button class="lz-btn fill" onclick="sToast('📞 이륜거래소 연결 중...')">문의하기</button></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 배달뉴스 화면 ═══════════ -->
+  <section class="screen" id="newsScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">배달뉴스</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="chiprow">
+        <button class="fchip on" onclick="pickChip(this)">전체</button>
+        <button class="fchip" onclick="pickChip(this)">정책·제도</button>
+        <button class="fchip" onclick="pickChip(this)">날씨·안전</button>
+        <button class="fchip" onclick="pickChip(this)">꿀팁</button>
+        <button class="fchip" onclick="pickChip(this)">이벤트</button>
+      </div>
+
+      <div class="nw-hero" onclick="sToast('기사 상세는 준비 중입니다')">
+        <span class="b">🔥 오늘의 헤드라인</span>
+        <div class="t">배달기사 산재보험 적용 확대… 7월부터 보험료 부담 완화</div>
+        <div class="m">slyde뉴스 · 2시간 전 · 읽음 3,201</div>
+      </div>
+
+      <div class="nw-it" onclick="sToast('기사 상세는 준비 중입니다')"><div class="nw-th">⚖️</div><div><div class="nw-c">정책·제도</div><div class="nw-t">이륜차 정기검사 의무화 확대, 위반 시 과태료 상향</div><div class="nw-m">국토부 · 4시간 전</div></div></div>
+      <div class="nw-it" onclick="sToast('기사 상세는 준비 중입니다')"><div class="nw-th">🌧️</div><div><div class="nw-c">날씨·안전</div><div class="nw-t">장마철 빗길 운행 안전수칙 5가지, 제동거리 1.5배 주의</div><div class="nw-m">안전공단 · 6시간 전</div></div></div>
+      <div class="nw-it" onclick="sToast('기사 상세는 준비 중입니다')"><div class="nw-th">💡</div><div><div class="nw-c">꿀팁</div><div class="nw-t">피크타임 콜 수락률 높이는 동선 짜기, 베테랑 라이더 노하우</div><div class="nw-m">slyde뉴스 · 어제</div></div></div>
+      <div class="nw-it" onclick="sToast('기사 상세는 준비 중입니다')"><div class="nw-th">🎉</div><div><div class="nw-c">이벤트</div><div class="nw-t">slyde 출석 이벤트, 30일 연속 접속 시 주유상품권 증정</div><div class="nw-m">slyde · 어제</div></div></div>
+      <div class="nw-it" onclick="sToast('기사 상세는 준비 중입니다')"><div class="nw-th">⛽</div><div><div class="nw-c">꿀팁</div><div class="nw-t">이번 주 인천 지역 최저가 주유소 TOP 10 공개</div><div class="nw-m">slyde뉴스 · 2일 전</div></div></div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 내 주변 정비소 화면 ═══════════ -->
+  <section class="screen" id="garageScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">내 주변 정비소</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="chiprow">
+        <button class="fchip on" onclick="pickChip(this)">전체</button>
+        <button class="fchip" onclick="pickChip(this)">24시간</button>
+        <button class="fchip" onclick="pickChip(this)">긴급출동</button>
+        <button class="fchip" onclick="pickChip(this)">타이어</button>
+        <button class="fchip" onclick="pickChip(this)">오일교환</button>
+      </div>
+
+      <div class="gx-loc" onclick="sToast('지도 보기는 준비 중입니다')">
+        <div class="i">📍</div>
+        <div><div class="t">현재 위치 · 인천 서구 가정동</div><div class="s">반경 3km 내 정비소 8곳 · 지도로 보기 →</div></div>
+      </div>
+
+      <div class="gx-card">
+        <div class="gx-h"><div class="gx-ic">🔧</div><div style="flex:1"><div class="gx-nm">서구이륜차정비 <span class="gx-247">24시간</span></div><div class="gx-s">긴급출동 · 타이어 · 엔진오일</div></div><div class="gx-d"><div class="gx-dn">0.4km</div><div class="gx-dr">★ 4.9 (312)</div></div></div>
+        <div class="gx-tags"><span class="gx-tag hot">라이더 단골 1위</span><span class="gx-tag">긴급출동 15분</span></div>
+        <div class="gx-foot"><button class="gx-btn ghost" onclick="sToast('🗺️ 길찾기 연결 중...')">길찾기</button><button class="gx-btn fill" onclick="sToast('📞 032-000-0000 연결 중...')">전화하기</button></div>
+      </div>
+
+      <div class="gx-card">
+        <div class="gx-h"><div class="gx-ic">🏍️</div><div style="flex:1"><div class="gx-nm">가정동모터스 <span class="gx-open">영업중</span></div><div class="gx-s">PCX·비전 전문 · 엔진 정밀</div></div><div class="gx-d"><div class="gx-dn">0.9km</div><div class="gx-dr">★ 4.7 (188)</div></div></div>
+        <div class="gx-tags"><span class="gx-tag">엔진 전문</span><span class="gx-tag">부품 보유 多</span></div>
+        <div class="gx-foot"><button class="gx-btn ghost" onclick="sToast('🗺️ 길찾기 연결 중...')">길찾기</button><button class="gx-btn fill" onclick="sToast('📞 032-000-0000 연결 중...')">전화하기</button></div>
+      </div>
+
+      <div class="gx-card">
+        <div class="gx-h"><div class="gx-ic">🛞</div><div style="flex:1"><div class="gx-nm">스피드타이어 <span class="gx-open">영업중</span></div><div class="gx-s">타이어 교체 · 펑크 수리 특화</div></div><div class="gx-d"><div class="gx-dn">1.6km</div><div class="gx-dr">★ 4.6 (95)</div></div></div>
+        <div class="gx-tags"><span class="gx-tag hot">타이어 최저가</span><span class="gx-tag">10분 교체</span></div>
+        <div class="gx-foot"><button class="gx-btn ghost" onclick="sToast('🗺️ 길찾기 연결 중...')">길찾기</button><button class="gx-btn fill" onclick="sToast('📞 032-000-0000 연결 중...')">전화하기</button></div>
+      </div>
+
+      <div class="gx-card">
+        <div class="gx-h"><div class="gx-ic">⚡</div><div style="flex:1"><div class="gx-nm">번개긴급출동 <span class="gx-247">24시간</span></div><div class="gx-s">현장 출동 · 견인 · 배터리</div></div><div class="gx-d"><div class="gx-dn">2.3km</div><div class="gx-dr">★ 4.5 (241)</div></div></div>
+        <div class="gx-tags"><span class="gx-tag">전지역 출동</span><span class="gx-tag">견인 가능</span></div>
+        <div class="gx-foot"><button class="gx-btn ghost" onclick="sToast('🗺️ 길찾기 연결 중...')">길찾기</button><button class="gx-btn fill" onclick="sToast('📞 032-000-0000 연결 중...')">전화하기</button></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 라이더 용품샵 화면 ═══════════ -->
+  <section class="screen" id="shopScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">라이더 용품샵</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="chiprow">
+        <button class="fchip on" onclick="pickChip(this)">전체</button>
+        <button class="fchip" onclick="pickChip(this)">헬멧</button>
+        <button class="fchip" onclick="pickChip(this)">장갑·보호대</button>
+        <button class="fchip" onclick="pickChip(this)">우비·방한</button>
+        <button class="fchip" onclick="pickChip(this)">배달가방</button>
+        <button class="fchip" onclick="pickChip(this)">거치대</button>
+      </div>
+
+      <div class="sh-promo" onclick="sToast('기획전은 준비 중입니다')">
+        <div><div class="tt">🌧️ 장마 대비 방수용품 기획전</div><div class="ss">우비·방수커버 최대 40% 할인</div></div>
+        <div class="tag">~40%</div>
+      </div>
+
+      <div class="sh-grid">
+        <div class="sh-card" onclick="sToast('상품 상세는 준비 중입니다')"><div class="sh-th">🪖<span class="sh-bdg best">BEST</span></div><div class="sh-bd"><div class="sh-br">세이프라이드</div><div class="sh-nm">풀페이스 헬멧 (블루투스 내장)</div><div class="sh-pr"><span class="sh-dc">23%</span><span class="sh-p">99,000원</span></div><div class="sh-rt">★ 4.8 (1,024)</div></div></div>
+        <div class="sh-card" onclick="sToast('상품 상세는 준비 중입니다')"><div class="sh-th">🧤<span class="sh-bdg">SALE</span></div><div class="sh-bd"><div class="sh-br">모토기어</div><div class="sh-nm">방수 터치 라이딩 장갑</div><div class="sh-pr"><span class="sh-dc">30%</span><span class="sh-p">19,600원</span></div><div class="sh-rt">★ 4.6 (512)</div></div></div>
+        <div class="sh-card" onclick="sToast('상품 상세는 준비 중입니다')"><div class="sh-th">🎒</div><div class="sh-bd"><div class="sh-br">배달마스터</div><div class="sh-nm">보온·보냉 대용량 배달가방 60L</div><div class="sh-pr"><span class="sh-p">45,000원</span></div><div class="sh-rt">★ 4.7 (889)</div></div></div>
+        <div class="sh-card" onclick="sToast('상품 상세는 준비 중입니다')"><div class="sh-th">📱<span class="sh-bdg best">BEST</span></div><div class="sh-bd"><div class="sh-br">라이드텍</div><div class="sh-nm">진동 흡수 휴대폰 거치대 (방수)</div><div class="sh-pr"><span class="sh-dc">15%</span><span class="sh-p">25,500원</span></div><div class="sh-rt">★ 4.9 (2,103)</div></div></div>
+        <div class="sh-card" onclick="sToast('상품 상세는 준비 중입니다')"><div class="sh-th">🧥</div><div class="sh-bd"><div class="sh-br">웨더쉴드</div><div class="sh-nm">전신 방수 우비 세트 (상하 분리)</div><div class="sh-pr"><span class="sh-dc">40%</span><span class="sh-p">23,400원</span></div><div class="sh-rt">★ 4.5 (671)</div></div></div>
+        <div class="sh-card" onclick="sToast('상품 상세는 준비 중입니다')"><div class="sh-th">🦺</div><div class="sh-bd"><div class="sh-br">세이프라이드</div><div class="sh-nm">무릎·팔꿈치 보호대 4종 세트</div><div class="sh-pr"><span class="sh-dc">25%</span><span class="sh-p">29,250원</span></div><div class="sh-rt">★ 4.7 (438)</div></div></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 우리지역 협력사 화면 ═══════════ -->
+  <section class="screen" id="partnerScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">우리지역 협력사</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="sec-title">🏢 우리 동네 협력사</div>
+      <div class="sec-sub">협력사 소개 · 프로모션 정책</div>
+      <div class="pt-region">
+        <select class="pt-sel" id="pt-sido" onchange="ptOnSido()"><option value="전체">시/도 전체</option></select>
+        <select class="pt-sel" id="pt-sigungu" onchange="ptRender()" disabled><option value="전체">시·군·구</option></select>
+      </div>
+      <div class="pt-res"><div>총 <b id="pt-count">0개</b> 협력사</div><div class="pt-loc" id="pt-locLabel">전국</div></div>
+      <div id="pt-list"></div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 내 주변 주유소 화면 ═══════════ -->
+  <section class="screen" id="gasScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">내 주변 주유소</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="sec-title">⛽ 내 주변 주유소</div>
+      <div class="sec-sub">인천 서구 가정동 기준 · 휘발유 가격</div>
+      <div class="gs-sortbar">
+        <button class="gs-sort on" id="gs-sort-price" onclick="gsSort('price',this)">가격 낮은순</button>
+        <button class="gs-sort" id="gs-sort-dist" onclick="gsSort('dist',this)">거리순</button>
+        <button class="gs-sort" id="gs-sort-diesel" onclick="gsSort('diesel',this)">경유 낮은순</button>
+      </div>
+      <div class="gs-meta" id="gs-meta"></div>
+      <div id="gs-list"></div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 신차/중고차 화면 ═══════════ -->
+  <section class="screen" id="carScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">신차/중고차</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="seg" id="carSeg">
+        <button class="on" onclick="carTab('new',this)">신차</button>
+        <button onclick="carTab('used',this)">중고차</button>
+      </div>
+      <div class="gs-sortbar">
+        <button class="gs-sort on" id="car-sort-price" onclick="carSort('price',this)">가격 낮은순</button>
+        <button class="gs-sort" id="car-sort-year" onclick="carSort('year',this)">최신 연식순</button>
+        <button class="gs-sort" id="car-sort-km" onclick="carSort('km',this)">주행 짧은순</button>
+      </div>
+      <div class="gs-meta" id="car-meta"></div>
+      <div id="car-list"></div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 내 주변 맛집 화면 ═══════════ -->
+  <section class="screen" id="foodScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">내 주변 맛집</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="sec-title">🍜 라이더 추천 맛집</div>
+      <div class="sec-sub">인천 서구 가정동 기준 · 라이더들이 자주 가는 곳</div>
+      <div class="chiprow" id="food-cats">
+        <button class="fchip on" onclick="foodCat('전체',this)">전체</button>
+        <button class="fchip" onclick="foodCat('한식',this)">한식</button>
+        <button class="fchip" onclick="foodCat('중식',this)">중식</button>
+        <button class="fchip" onclick="foodCat('일식',this)">일식·분식</button>
+        <button class="fchip" onclick="foodCat('양식',this)">양식</button>
+        <button class="fchip" onclick="foodCat('카페',this)">카페</button>
+      </div>
+      <div class="gs-sortbar">
+        <button class="gs-sort on" id="food-sort-rate" onclick="foodSort('rate',this)">평점 높은순</button>
+        <button class="gs-sort" id="food-sort-dist" onclick="foodSort('dist',this)">거리순</button>
+        <button class="gs-sort" id="food-sort-review" onclick="foodSort('review',this)">리뷰 많은순</button>
+      </div>
+      <div class="gs-meta" id="food-meta"></div>
+      <div id="food-list"></div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 랭킹 순위 화면 ═══════════ -->
+  <section class="screen" id="rankScreen">
+    <header class="screen-top">
+      <button class="back" onclick="this.closest('.screen').classList.remove('show')">←</button>
+      <div class="screen-title">랭킹 순위</div>
+      <div style="width:34px"></div>
+    </header>
+    <div class="screen-body">
+      <div class="sec-title">🏆 slyde 라이더 배달 랭킹</div>
+      <div class="sec-sub">slyde 이용 라이더 배달 건수 순위</div>
+      <div class="seg" id="rankSeg">
+        <button class="on" onclick="rankTab('week',this)">주간</button>
+        <button onclick="rankTab('month',this)">월간</button>
+        <button onclick="rankTab('total',this)">누적</button>
+      </div>
+      <div class="rk-myrank">
+        <div class="l">내 순위 (환타)</div>
+        <div class="r" id="rk-myrank">-</div>
+      </div>
+      <div id="rk-podium"></div>
+      <div id="rk-list"></div>
+      <div style="height:20px"></div>
+    </div>
+  </section>
+
+  <!-- slyde 토스트 -->
+  <div id="sToast" style="position:absolute;left:50%;bottom:80px;transform:translateX(-50%) translateY(10px);
+    background:rgba(28,30,33,.92);color:#fff;font-size:13px;padding:11px 18px;border-radius:22px;
+    z-index:70;opacity:0;visibility:hidden;transition:opacity .2s,transform .2s;white-space:nowrap;max-width:90%"></div>
+
+</div>
+
+<script>
+/* ─────────────── 동작 스크립트 ─────────────── */
+const app = document.getElementById('app');
+
+// 햄버거 → 사이드 메뉴 열기 / 오버레이·닫기 버튼 → 닫기
+document.getElementById('menuBtn').addEventListener('click', () => app.classList.add('menu-open'));
+document.getElementById('overlay').addEventListener('click', () => app.classList.remove('menu-open'));
+document.getElementById('closeBtn').addEventListener('click', () => app.classList.remove('menu-open'));
+
+// 좋아요(하트) 토글
+document.querySelectorAll('.act.heart').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cnt = btn.querySelector('.cnt');
+    const on = btn.classList.toggle('on');
+    cnt.textContent = parseInt(cnt.textContent, 10) + (on ? 1 : -1);
+  });
+});
+
+// 하단 탭 → 뷰 전환
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelector('.tab.active')?.classList.remove('active');
+    tab.classList.add('active');
+    document.querySelectorAll('.tabview').forEach(v => v.classList.remove('show'));
+    const view = tab.dataset.view;
+    if (view && view !== 'home') {
+      const el = document.getElementById('view-' + view);
+      if (el) { el.classList.add('show'); el.scrollTop = 0; }
+    }
+  });
+});
+
+// 숏폼 좋아요 토글
+document.querySelectorAll('.short-act.heart').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const on = btn.classList.toggle('on');
+    btn.querySelector('.ico').textContent = on ? '❤️' : '🤍';
+  });
+});
+
+// 사고접수 → SDK 로딩 화면 → 사고접수 화면 진입
+const accidentScreen = document.getElementById('accidentScreen');
+const accidentDone   = document.getElementById('accidentDone');
+
+document.getElementById('accidentBtn').addEventListener('click', () => {
+  app.classList.remove('menu-open');   // 메뉴 닫기
+  app.classList.add('loading');        // 로딩 화면 표시
+  setTimeout(() => {
+    app.classList.remove('loading');
+    accidentScreen.classList.add('show');   // 로딩 후 사고접수 화면으로
+  }, 2500);
+});
+
+// 현재 시각을 사고 일시 기본값으로
+const now = new Date();
+now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+document.getElementById('accTime').value = now.toISOString().slice(0, 16);
+
+// 뒤로가기 → 피드로 복귀 (상태 초기화)
+document.getElementById('accidentBack').addEventListener('click', () => {
+  accidentScreen.classList.remove('show');
+  accidentDone.classList.remove('show');
+});
+
+// 칩 단일 선택 (사고 유형 / 부상 여부)
+document.querySelectorAll('#accidentScreen .chips').forEach(group => {
+  group.addEventListener('click', e => {
+    if (!e.target.classList.contains('chip')) return;
+    group.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    e.target.classList.add('on');
+  });
+});
+
+// 제출 → 접수 완료 화면
+document.getElementById('accidentSubmit').addEventListener('click', () => accidentDone.classList.add('show'));
+
+// 완료 확인 → 피드로 복귀
+document.getElementById('doneBtn').addEventListener('click', () => {
+  accidentDone.classList.remove('show');
+  accidentScreen.classList.remove('show');
+});
+
+/* ─────────────── 신규 메뉴 화면 ─────────────── */
+// 메뉴 항목 → 화면 열기
+function openScreen(id){
+  app.classList.remove('menu-open');
+  document.getElementById(id).classList.add('show');
+  const body = document.querySelector('#'+id+' .screen-body');
+  if (body) body.scrollTop = 0;
+  if (id === 'partnerScreen') ptEnsureInit();
+  if (id === 'gasScreen') gsRender();
+  if (id === 'carScreen') carRender();
+  if (id === 'foodScreen') foodRender();
+  if (id === 'rankScreen') rankRender();
+}
+
+// 드로어 프로필 영역 → 내 프로필 탭으로
+function openProfile(){
+  app.classList.remove('menu-open');                       // 메뉴 닫기
+  document.querySelectorAll('.screen.show').forEach(s => s.classList.remove('show')); // 열린 화면 닫기
+  const tab = document.querySelector('.tab[data-view="profile"]');
+  document.querySelector('.tab.active')?.classList.remove('active');
+  tab?.classList.add('active');
+  document.querySelectorAll('.tabview').forEach(v => v.classList.remove('show'));
+  const view = document.getElementById('view-profile');
+  if (view){ view.classList.add('show'); view.scrollTop = 0; }
+}
+
+// 토스트
+let sToastTimer;
+function sToast(msg){
+  const el = document.getElementById('sToast');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  el.style.visibility = 'visible';
+  el.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(sToastTimer);
+  sToastTimer = setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(10px)';
+    setTimeout(() => { el.style.visibility = 'hidden'; }, 200);
+  }, 1800);
+}
+
+// 필터 칩 단일 선택
+function pickChip(btn){
+  const row = btn.parentElement;
+  row.querySelectorAll('.fchip').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// 내 실적 오늘/주간 전환
+const PF_DATA = {
+  today:{ label:'오늘', count:27, amt:86400, pct:'87.1%', tag:'양호',
+          s:[27,3,1,0], p:[14,11,2,0] },
+  week: { label:'주간', count:189, amt:604800, pct:'86.0%', tag:'양호',
+          s:[189,22,7,2], p:[92,64,28,5] }
+};
+function updatePerf(period, btn){
+  const d = PF_DATA[period];
+  document.querySelectorAll('#perfSeg button').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  document.getElementById('pf-tlabel').textContent = d.label + ' 총 배달건수';
+  document.getElementById('pf-glabel').textContent = d.label + ' 수락률';
+  document.getElementById('pf-count').textContent = d.count;
+  document.getElementById('pf-amt').textContent = '/ ₩' + d.amt.toLocaleString();
+  document.getElementById('pf-pct').textContent = d.pct;
+  document.getElementById('pf-tag').textContent = d.tag;
+  d.s.forEach((v,i) => document.getElementById('pf-s'+i).textContent = v);
+  d.p.forEach((v,i) => document.getElementById('pf-p'+i).textContent = v);
+  // 피크 최다 구간 강조
+  const cells = document.querySelectorAll('#perfScreen .pf-grid:last-of-type .pf-cell');
+  const mx = Math.max(...d.p);
+  cells.forEach((c,i) => c.classList.toggle('max', d.p[i] === mx && mx > 0));
+}
+
+/* ─────────────── 우리지역 협력사 ─────────────── */
+const PT_REGIONS = {
+  "서울":["강남구","강동구","강북구","강서구","관악구","광진구","구로구","금천구","노원구","도봉구","동대문구","동작구","마포구","서대문구","서초구","성동구","성북구","송파구","양천구","영등포구","용산구","은평구","종로구","중구","중랑구"],
+  "인천":["중구","동구","미추홀구","연수구","남동구","부평구","계양구","서구","강화군","옹진군"],
+  "경기":["수원시","성남시","고양시","용인시","부천시","안산시","안양시","남양주시","화성시","평택시","의정부시","시흥시","김포시","광명시","군포시","이천시","오산시","하남시","파주시"],
+  "부산":["중구","서구","동구","영도구","부산진구","동래구","남구","북구","해운대구","사하구","금정구","강서구","연제구","수영구","사상구","기장군"],
+  "대구":["중구","동구","서구","남구","북구","수성구","달서구","달성군"],
+  "대전":["동구","중구","서구","유성구","대덕구"],
+  "광주":["동구","서구","남구","북구","광산구"],
+  "울산":["중구","남구","동구","북구","울주군"],
+  "세종":["세종시"],
+  "강원":["춘천시","원주시","강릉시","동해시","속초시","삼척시","태백시","홍천군","평창군"],
+  "충북":["청주시","충주시","제천시","음성군","진천군","옥천군"],
+  "충남":["천안시","아산시","서산시","당진시","논산시","공주시","보령시","홍성군"],
+  "전북":["전주시","익산시","군산시","정읍시","남원시","김제시","완주군"],
+  "전남":["목포시","여수시","순천시","나주시","광양시","무안군","해남군"],
+  "경북":["포항시","경주시","구미시","경산시","안동시","김천시","영주시","칠곡군"],
+  "경남":["창원시","김해시","진주시","양산시","거제시","통영시","사천시","밀양시"],
+  "제주":["제주시","서귀포시"]
+};
+const PT_PARTNERS = [
+  {name:"인천서구센터", sido:"인천", gu:"서구", addr:"인천 서구 가정로 (가정동)", riders:227, daily:"2,400", accept:"88%", feat:true, hiring:false,
+   desc:"배민 인천서구 지역 직영 협력사. 일 평균 2,400콜의 안정적인 물량과 체계적인 배차로 라이더 수익을 극대화합니다.",
+   promos:[{i:"💰",t:"신규 라이더 <b>첫 달 수수료 0%</b> · 정착지원금 30만원"},{i:"⛽",t:"주 100건 이상 시 <b>주유비 월 10만원</b> 지원"},{i:"🛡️",t:"단체상해보험 <b>전원 가입</b>"}]},
+  {name:"인천검단센터", sido:"인천", gu:"서구", addr:"인천 서구 검단로 (당하동)", riders:84, daily:"950", accept:"86%", feat:false, hiring:true,
+   desc:"검단신도시 전담 협력사. 신도시 배후 수요로 단거리 콜 비중이 높아 효율적인 운행이 가능합니다.",
+   promos:[{i:"🎁",t:"입사 시 <b>배달가방·우비 무상</b> 지급"},{i:"📈",t:"단거리 콜 <b>건당 추가 프로모션</b> 운영"}]},
+  {name:"인천부평센터", sido:"인천", gu:"부평구", addr:"인천 부평구 부평대로 (부평동)", riders:156, daily:"1,800", accept:"85%", feat:false, hiring:true,
+   desc:"부평역 상권 중심의 도심형 협력사. 음식점 밀집 지역으로 피크타임 물량이 풍부합니다.",
+   promos:[{i:"🌙",t:"심야 피크 <b>건당 +500원</b> 야간 수당"},{i:"🅿️",t:"센터 <b>무료 주차·휴게실</b> 24시간"}]},
+  {name:"서울강서센터", sido:"서울", gu:"강서구", addr:"서울 강서구 화곡로 (화곡동)", riders:198, daily:"2,100", accept:"87%", feat:false, hiring:false,
+   desc:"강서·마곡 지구 전담. 대단지 아파트와 오피스 상권이 공존해 시간대별 물량이 고른 편입니다.",
+   promos:[{i:"💰",t:"전월 대비 콜 상승 시 <b>인센티브 지급</b>"},{i:"🍱",t:"라이더 <b>점심 도시락 제휴 할인</b>"}]},
+  {name:"경기부천센터", sido:"경기", gu:"부천시", addr:"경기 부천시 길주로 (중동)", riders:142, daily:"1,650", accept:"84%", feat:false, hiring:true,
+   desc:"부천 중동·상동 상권 전담 협력사. 수도권 서부 핵심 배달 거점입니다.",
+   promos:[{i:"🎁",t:"신규 등록 <b>웰컴 보너스 20만원</b>"},{i:"🔧",t:"제휴 정비소 <b>정비비 20% 할인</b>"}]},
+  {name:"부산해운대센터", sido:"부산", gu:"해운대구", addr:"부산 해운대구 중동 일대", riders:171, daily:"1,900", accept:"86%", feat:false, hiring:false,
+   desc:"해운대·센텀시티 전담. 관광·상업 지구 특성상 주말·성수기 물량이 강세입니다.",
+   promos:[{i:"🏖️",t:"성수기 <b>주말 특별 프로모션</b> 운영"},{i:"⛽",t:"제휴 주유소 <b>리터당 할인</b>"}]}
+];
+let ptInited = false;
+function ptEnsureInit(){
+  if (ptInited) return;
+  const sido = document.getElementById('pt-sido');
+  Object.keys(PT_REGIONS).forEach(s => {
+    const o = document.createElement('option'); o.value = s; o.textContent = s; sido.appendChild(o);
+  });
+  ptInited = true;
+  ptRender();
+}
+function ptOnSido(){
+  const sido = document.getElementById('pt-sido').value;
+  const sg = document.getElementById('pt-sigungu');
+  sg.innerHTML = '<option value="전체">시·군·구 전체</option>';
+  if (sido === '전체'){ sg.disabled = true; }
+  else {
+    (PT_REGIONS[sido]||[]).forEach(g => { const o=document.createElement('option'); o.value=g; o.textContent=g; sg.appendChild(o); });
+    sg.disabled = false;
+  }
+  ptRender();
+}
+function ptRender(){
+  const sido = document.getElementById('pt-sido').value;
+  const gu = document.getElementById('pt-sigungu').value;
+  const list = PT_PARTNERS.filter(p => {
+    if (sido !== '전체' && p.sido !== sido) return false;
+    if (sido !== '전체' && gu !== '전체' && p.gu !== gu) return false;
+    return true;
+  });
+  document.getElementById('pt-count').textContent = list.length + '개';
+  let loc = '전국';
+  if (sido !== '전체') loc = (gu !== '전체') ? (sido + ' ' + gu) : sido + ' 전체';
+  document.getElementById('pt-locLabel').textContent = loc;
+  const wrap = document.getElementById('pt-list');
+  if (!list.length){
+    wrap.innerHTML = '<div class="pt-empty"><div class="e">🔍</div>선택하신 지역에는 아직 등록된 협력사가 없어요.<br>다른 지역을 선택해 보세요.</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(p => {
+    const tags = (p.feat?'<span class="pt-ftag">대표</span>':'') + (p.hiring?'<span class="pt-htag">모집중</span>':'');
+    const promos = p.promos.map(pr => `<div class="pt-pr"><span class="pt-pico">${pr.i}</span><span class="pt-ptx">${pr.t}</span></div>`).join('');
+    return `<div class="pt-card${p.feat?' feat':''}">
+      <div class="pt-h"><div class="pt-logo">🏢</div><div><div class="pt-nm">${p.name} ${tags}</div><div class="pt-addr">${p.addr}</div></div></div>
+      <div class="pt-stats">
+        <div class="pt-stat"><div class="pt-sv">${p.riders}명</div><div class="pt-sl">소속 라이더</div></div>
+        <div class="pt-stat"><div class="pt-sv">${p.daily}</div><div class="pt-sl">일 평균 콜</div></div>
+        <div class="pt-stat"><div class="pt-sv">${p.accept}</div><div class="pt-sl">수락률</div></div>
+      </div>
+      <div class="pt-desc">${p.desc}</div>
+      <div class="pt-promo"><div class="pt-pt">🎯 협력사 프로모션</div>${promos}</div>
+      <div class="pt-foot"><button class="pt-btn ghost" onclick="sToast('센터 상세 소개는 준비 중입니다')">상세 보기</button><button class="pt-btn fill" onclick="sToast('📞 ${p.name} 가입 문의 연결 중...')">가입 문의</button></div>
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────── 내 주변 주유소 ─────────────── */
+const GS_STATIONS = [
+  {name:"청라셀프주유소", brand:"알뜰", ico:"🟡", gasoline:1612, diesel:1498, dist:0.5},
+  {name:"가정현대오일뱅크", brand:"현대오일뱅크", ico:"🔵", gasoline:1648, diesel:1532, dist:0.8},
+  {name:"GS칼텍스 서구점", brand:"GS칼텍스", ico:"🟢", gasoline:1659, diesel:1545, dist:1.1},
+  {name:"S-OIL 가정주유소", brand:"S-OIL", ico:"🟠", gasoline:1635, diesel:1521, dist:1.4},
+  {name:"SK에너지 청라점", brand:"SK에너지", ico:"🔴", gasoline:1671, diesel:1559, dist:1.9},
+  {name:"경인고속주유소", brand:"알뜰", ico:"🟡", gasoline:1599, diesel:1485, dist:2.6}
+];
+let gsSortKey = 'price';
+function gsSort(key, btn){
+  gsSortKey = key;
+  document.querySelectorAll('.gs-sort').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  gsRender();
+}
+function gsRender(){
+  const list = GS_STATIONS.slice().sort((a,b) => {
+    if (gsSortKey === 'dist') return a.dist - b.dist;
+    if (gsSortKey === 'diesel') return a.diesel - b.diesel;
+    return a.gasoline - b.gasoline; // price (휘발유)
+  });
+  // 정렬 기준에서의 최저값 표시(최저가 강조)
+  const lowVal = gsSortKey === 'dist' ? null
+    : Math.min(...list.map(s => gsSortKey === 'diesel' ? s.diesel : s.gasoline));
+  const metaTxt = gsSortKey === 'dist' ? '가까운 순으로 정렬'
+    : (gsSortKey === 'diesel' ? '경유 가격 낮은 순' : '휘발유 가격 낮은 순');
+  document.getElementById('gs-meta').textContent = '총 ' + list.length + '곳 · ' + metaTxt;
+  document.getElementById('gs-list').innerHTML = list.map(s => {
+    const main = gsSortKey === 'diesel' ? s.diesel : s.gasoline;
+    const isLow = lowVal !== null && main === lowVal;
+    const mainLabel = gsSortKey === 'diesel' ? '경유' : '휘발유';
+    const subLabel = gsSortKey === 'diesel' ? ('휘발유 ' + s.gasoline.toLocaleString()) : ('경유 ' + s.diesel.toLocaleString());
+    return `<div class="gs-card${isLow?' low':''}">
+      <div class="gs-logo">${s.ico}</div>
+      <div class="gs-mid">
+        <div class="gs-nm">${s.name} ${isLow?'<span class="gs-low">최저가</span>':''}</div>
+        <div class="gs-brand">${s.brand}</div>
+        <div class="gs-sub"><span class="d">📍 ${s.dist}km</span><span>${subLabel}원</span></div>
+      </div>
+      <div class="gs-price">
+        <div class="gs-p">${main.toLocaleString()}</div>
+        <div class="gs-pl">${mainLabel} · 원/L</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────── 신차/중고차 ─────────────── */
+const CARS = [
+  // 신차 (price=만원, year=연식, km=주행거리(km), monthly=월 리스료(만원))
+  {cond:"new", name:"혼다 PCX 125", year:2026, km:0, price:438, monthly:18, tags:"배달 인기 1위", deal:"즉시출고", ph:"p1", ico:"🛵"},
+  {cond:"new", name:"야마하 NMAX 125", year:2026, km:0, price:472, monthly:20, tags:"고속 안정성", deal:"", ph:"p2", ico:"🛵"},
+  {cond:"new", name:"혼다 비전 110", year:2026, km:0, price:298, monthly:13, tags:"가성비 배달용", deal:"특가", ph:"p3", ico:"🛵"},
+  {cond:"new", name:"대림 Q2 125 (전동)", year:2026, km:0, price:359, monthly:15, tags:"전동·보조금 가능", deal:"", ph:"p4", ico:"⚡"},
+  // 중고차
+  {cond:"used", name:"혼다 PCX 125", year:2023, km:18400, price:268, monthly:0, tags:"무사고", deal:"", ph:"p1", ico:"🛵"},
+  {cond:"used", name:"혼다 비전 110", year:2022, km:31200, price:152, monthly:0, tags:"정비이력 완비", deal:"급매", ph:"p3", ico:"🛵"},
+  {cond:"used", name:"야마하 NMAX 125", year:2024, km:9800, price:355, monthly:0, tags:"실주행 1만 미만", deal:"", ph:"p2", ico:"🛵"},
+  {cond:"used", name:"대림 시티 100", year:2021, km:42600, price:88, monthly:0, tags:"입문용", deal:"급매", ph:"p6", ico:"🛵"}
+];
+let carCond = 'new', carSortKey = 'price';
+function carTab(cond, btn){
+  carCond = cond;
+  document.querySelectorAll('#carSeg button').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  carRender();
+}
+function carSort(key, btn){
+  carSortKey = key;
+  document.querySelectorAll('#carScreen .gs-sort').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  carRender();
+}
+function carRender(){
+  let list = CARS.filter(c => c.cond === carCond).slice();
+  list.sort((a,b) => {
+    if (carSortKey === 'year') return b.year - a.year;   // 최신 연식
+    if (carSortKey === 'km')   return a.km - b.km;        // 주행 짧은순
+    return a.price - b.price;                             // 가격 낮은순
+  });
+  const sortTxt = carSortKey === 'year' ? '최신 연식순' : (carSortKey === 'km' ? '주행거리 짧은순' : '가격 낮은순');
+  document.getElementById('car-meta').textContent = '총 ' + list.length + '대 · ' + sortTxt;
+  const wrap = document.getElementById('car-list');
+  if (!list.length){ wrap.innerHTML = '<div class="cr-empty">해당 조건의 매물이 없어요.</div>'; return; }
+  wrap.innerHTML = list.map(c => {
+    const condBadge = c.cond === 'new' ? '<span class="cr-cond new">신차</span>' : '<span class="cr-cond used">중고</span>';
+    const deal = c.deal ? `<span class="cr-deal">${c.deal}</span>` : '';
+    const spec = c.cond === 'new'
+      ? `<span>${c.year}년식</span><span class="sep">|</span><span>신차</span><span class="sep">|</span><span>${c.tags}</span>`
+      : `<span>${c.year}년식</span><span class="sep">|</span><span>${c.km.toLocaleString()}km</span><span class="sep">|</span><span>${c.tags}</span>`;
+    const price = c.cond === 'new'
+      ? `<div class="cr-p">${c.price}<span class="u">만원~</span></div><div class="cr-month">리스 월 ${c.monthly}만원~</div>`
+      : `<div class="cr-p">${c.price}<span class="u">만원</span></div>`;
+    return `<div class="cr-card">
+      <div class="cr-photo ${c.ph}">${c.ico}${condBadge}${deal}</div>
+      <div class="cr-body">
+        <div class="cr-nm">${c.name}</div>
+        <div class="cr-spec">${spec}</div>
+        <div class="cr-price">${price}</div>
+        <div class="cr-foot">
+          <button class="cr-btn ghost" onclick="sToast('매물 상세는 준비 중입니다')">상세 보기</button>
+          <button class="cr-btn fill" onclick="sToast('📞 ${c.name} 판매자 연결 중...')">문의하기</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────── 내 주변 맛집 ─────────────── */
+const FOODS = [
+  {name:"가정동밥집", cat:"한식", c:"c1", ico:"🍚", rate:4.8, review:1240, dist:0.3, open:true, menu:"제육볶음·김치찌개"},
+  {name:"청라손칼국수", cat:"한식", c:"c1", ico:"🍜", rate:4.6, review:870, dist:0.7, open:true, menu:"바지락칼국수"},
+  {name:"북경반점", cat:"중식", c:"c2", ico:"🥡", rate:4.7, review:1532, dist:0.5, open:true, menu:"짜장면·탕수육"},
+  {name:"홍콩반점0410", cat:"중식", c:"c2", ico:"🍜", rate:4.4, review:642, dist:1.2, open:false, menu:"짬뽕"},
+  {name:"스시혼", cat:"일식", c:"c3", ico:"🍣", rate:4.9, review:980, dist:0.9, open:true, menu:"초밥 모둠"},
+  {name:"분식왕떡볶이", cat:"일식", c:"c3", ico:"🍢", rate:4.5, review:2104, dist:0.4, open:true, menu:"로제떡볶이·튀김"},
+  {name:"화덕피자가정점", cat:"양식", c:"c4", ico:"🍕", rate:4.6, review:733, dist:1.6, open:true, menu:"마르게리타"},
+  {name:"버거인더하우스", cat:"양식", c:"c4", ico:"🍔", rate:4.3, review:418, dist:2.1, open:true, menu:"수제버거 세트"},
+  {name:"카페모카타임", cat:"카페", c:"c5", ico:"☕", rate:4.7, review:560, dist:0.6, open:true, menu:"아메리카노·라떼"},
+  {name:"디저트하우스", cat:"카페", c:"c6", ico:"🍰", rate:4.5, review:392, dist:1.0, open:false, menu:"수제 케이크"}
+];
+let foodCatKey = '전체', foodSortKey = 'rate';
+function foodCat(cat, btn){
+  foodCatKey = cat;
+  document.querySelectorAll('#food-cats .fchip').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  foodRender();
+}
+function foodSort(key, btn){
+  foodSortKey = key;
+  document.querySelectorAll('#foodScreen .gs-sort').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  foodRender();
+}
+function foodRender(){
+  let list = FOODS.filter(f => foodCatKey === '전체' || f.cat === foodCatKey).slice();
+  list.sort((a,b) => {
+    if (foodSortKey === 'dist')   return a.dist - b.dist;
+    if (foodSortKey === 'review') return b.review - a.review;
+    return b.rate - a.rate; // 평점 높은순
+  });
+  const sortTxt = foodSortKey === 'dist' ? '거리 가까운순' : (foodSortKey === 'review' ? '리뷰 많은순' : '평점 높은순');
+  document.getElementById('food-meta').textContent = '총 ' + list.length + '곳 · ' + sortTxt;
+  const wrap = document.getElementById('food-list');
+  if (!list.length){ wrap.innerHTML = '<div class="cr-empty">해당 카테고리의 맛집이 없어요.</div>'; return; }
+  wrap.innerHTML = list.map(f => {
+    const openBadge = f.open ? '<span class="ft-open">영업중</span>' : '<span class="ft-open closed">영업종료</span>';
+    return `<div class="ft-card">
+      <div class="ft-thumb ${f.c}">${f.ico}</div>
+      <div class="ft-mid">
+        <div class="ft-nm">${f.name} ${openBadge}</div>
+        <div class="ft-cat">${f.cat}</div>
+        <div class="ft-rate"><span class="ft-star">★ ${f.rate.toFixed(1)} <span>(${f.review.toLocaleString()})</span></span><span class="ft-dist">📍 ${f.dist}km</span></div>
+        <div class="ft-menu">대표 <b>${f.menu}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────── 랭킹 순위 (slyde 라이더 배달 랭킹) ─────────────── */
+const RANK_DATA = {
+  week: [
+    {name:"질주왕", center:"인천부평센터", ico:"🏍️", cnt:412, move:0},
+    {name:"번개라이더", center:"인천서구센터", ico:"⚡", cnt:398, move:1},
+    {name:"무사고킹", center:"서울강서센터", ico:"🛡️", cnt:375, move:-1},
+    {name:"폭주기관차", center:"경기부천센터", ico:"🚀", cnt:341, move:2},
+    {name:"바람돌이", center:"인천서구센터", ico:"🌪️", cnt:327, move:0},
+    {name:"환타", center:"인천서구센터", ico:"🛵", cnt:289, move:3, me:true},
+    {name:"안전제일", center:"부산해운대센터", ico:"🦺", cnt:271, move:-2},
+    {name:"달리는짜장", center:"인천검단센터", ico:"🥡", cnt:255, move:1},
+    {name:"심야의제왕", center:"인천부평센터", ico:"🌙", cnt:240, move:0},
+    {name:"라이더정석", center:"서울강서센터", ico:"📘", cnt:228, move:-1}
+  ],
+  month: [
+    {name:"번개라이더", center:"인천서구센터", ico:"⚡", cnt:1685, move:1},
+    {name:"질주왕", center:"인천부평센터", ico:"🏍️", cnt:1640, move:-1},
+    {name:"폭주기관차", center:"경기부천센터", ico:"🚀", cnt:1521, move:2},
+    {name:"무사고킹", center:"서울강서센터", ico:"🛡️", cnt:1498, move:0},
+    {name:"환타", center:"인천서구센터", ico:"🛵", cnt:1342, move:2, me:true},
+    {name:"바람돌이", center:"인천서구센터", ico:"🌪️", cnt:1310, move:-1},
+    {name:"심야의제왕", center:"인천부평센터", ico:"🌙", cnt:1188, move:1},
+    {name:"안전제일", center:"부산해운대센터", ico:"🦺", cnt:1102, move:-2},
+    {name:"달리는짜장", center:"인천검단센터", ico:"🥡", cnt:1024, move:0},
+    {name:"라이더정석", center:"서울강서센터", ico:"📘", cnt:998, move:1}
+  ],
+  total: [
+    {name:"무사고킹", center:"서울강서센터", ico:"🛡️", cnt:18420, move:0},
+    {name:"번개라이더", center:"인천서구센터", ico:"⚡", cnt:17985, move:0},
+    {name:"질주왕", center:"인천부평센터", ico:"🏍️", cnt:16740, move:1},
+    {name:"바람돌이", center:"인천서구센터", ico:"🌪️", cnt:15210, move:-1},
+    {name:"폭주기관차", center:"경기부천센터", ico:"🚀", cnt:14880, move:0},
+    {name:"안전제일", center:"부산해운대센터", ico:"🦺", cnt:13150, move:0},
+    {name:"환타", center:"인천서구센터", ico:"🛵", cnt:12420, move:1, me:true},
+    {name:"심야의제왕", center:"인천부평센터", ico:"🌙", cnt:11880, move:-1},
+    {name:"라이더정석", center:"서울강서센터", ico:"📘", cnt:10240, move:0},
+    {name:"달리는짜장", center:"인천검단센터", ico:"🥡", cnt:9860, move:0}
+  ]
+};
+let rankPeriod = 'week';
+function rankTab(period, btn){
+  rankPeriod = period;
+  document.querySelectorAll('#rankSeg button').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  rankRender();
+}
+function moveTag(m){
+  if (m > 0) return `<span class="rk-up">▲${m}</span>`;
+  if (m < 0) return `<span class="rk-down">▼${-m}</span>`;
+  return `<span style="font-size:11px;color:#9aa0a8">–</span>`;
+}
+function rankRender(){
+  const list = RANK_DATA[rankPeriod];
+  // 내 순위
+  const myIdx = list.findIndex(r => r.me);
+  document.getElementById('rk-myrank').textContent = myIdx >= 0 ? (myIdx + 1) + '위' : '순위권 밖';
+  // 포디움 (1·2·3위)
+  const podOrder = [1, 0, 2]; // 2위, 1위, 3위 순으로 배치
+  const cls = ['second','first','third'];
+  const crown = ['🥈','👑','🥉'];
+  document.getElementById('rk-podium').innerHTML = `<div class="rk-podium">` + podOrder.map((idx,i) => {
+    const r = list[idx]; if (!r) return '';
+    return `<div class="rk-pod ${cls[i]}">
+      <div class="rk-pcrown">${crown[i]}</div>
+      <div class="rk-pavatar">${r.ico}</div>
+      <div class="rk-pname">${r.name}</div>
+      <div class="rk-pcnt">${r.cnt.toLocaleString()}건</div>
+      <div class="rk-pbar">${idx+1}</div>
+    </div>`;
+  }).join('') + `</div>`;
+  // 4위 이하 리스트
+  document.getElementById('rk-list').innerHTML = list.slice(3).map((r,i) => {
+    const rank = i + 4;
+    return `<div class="rk-row${r.me?' me':''}">
+      <div class="rk-rank">${rank}</div>
+      <div class="rk-avatar">${r.ico}</div>
+      <div class="rk-info"><div class="rk-name">${r.name} ${r.me?'<span class="rk-mebadge">나</span>':''}</div><div class="rk-center">${r.center}</div></div>
+      <div class="rk-cnt"><div><b>${r.cnt.toLocaleString()}</b><span class="u">건</span></div>${moveTag(r.move)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────── 프로필 꾸미기 ─────────────── */
+const PROFILE = { avatar:'🛵', nick:'환타', nameEmoji:'⚡', bio:'인천서구센터 소속 · 안전운행 5년차 🛡️', badges:['safe','vet'] };
+const PE_AVATARS = ['🛵','🏍️','⚡','🦺','🚀','🌙','🔥','😎','🐢','🦅'];
+const PE_NAME_EMOJIS = ['','⚡','🔥','👑','🛡️','🌟','💨','😎','🚀','❄️'];
+const BADGE_CATALOG = {
+  safe:{l:'안전운행왕', i:'🛡️'}, night:{l:'심야의제왕', i:'🌙'}, master:{l:'1000건 달성', i:'🎯'},
+  vet:{l:'베테랑', i:'👑'}, kind:{l:'친절왕', i:'😊'}, rain:{l:'우천불사', i:'☔'},
+  speed:{l:'스피드킹', i:'💨'}, star:{l:'이달의 라이더', i:'🌟'}
+};
+const BADGE_MAX = 3;
+let peState = null;
+
+function renderProfile(){
+  document.getElementById('pr-avatar').textContent = PROFILE.avatar;
+  document.getElementById('pr-nameLine').textContent = PROFILE.nick + ' 님' + (PROFILE.nameEmoji ? ' ' + PROFILE.nameEmoji : '');
+  const badges = '<span class="badge partner">협력사회원</span>' +
+    PROFILE.badges.map(k => BADGE_CATALOG[k] ? `<span class="badge deco">${BADGE_CATALOG[k].i} ${BADGE_CATALOG[k].l}</span>` : '').join('');
+  document.getElementById('pr-badges').innerHTML = badges;
+  const bioEl = document.getElementById('pr-bio');
+  bioEl.textContent = PROFILE.bio;
+  bioEl.style.display = PROFILE.bio ? 'block' : 'none';
+  // 드로어 헤더 닉네임도 동기화
+  const dn = document.querySelector('.drawer-head .dname');
+  if (dn) dn.textContent = PROFILE.nick + ' 님';
+  const cn = document.querySelector('.cmp-name');
+  if (cn) cn.textContent = PROFILE.nick + ' 님';
+}
+
+function openProfileEdit(){
+  peState = { avatar:PROFILE.avatar, nameEmoji:PROFILE.nameEmoji, badges:PROFILE.badges.slice() };
+  document.getElementById('pe-nick').value = PROFILE.nick;
+  document.getElementById('pe-bio').value = PROFILE.bio;
+
+  // 아바타 선택지
+  const av = document.getElementById('pe-avatars'); av.innerHTML = '';
+  PE_AVATARS.forEach(e => {
+    const b = document.createElement('button');
+    b.className = 'pe-emoji' + (e === peState.avatar ? ' on' : '');
+    b.textContent = e;
+    b.onclick = () => { peState.avatar = e; av.querySelectorAll('.pe-emoji').forEach(x=>x.classList.remove('on')); b.classList.add('on'); pePreview(); };
+    av.appendChild(b);
+  });
+
+  // 닉네임 옆 이모지
+  const ne = document.getElementById('pe-nameEmojis'); ne.innerHTML = '';
+  PE_NAME_EMOJIS.forEach(e => {
+    const b = document.createElement('button');
+    const isNone = e === '';
+    b.className = 'pe-emoji' + (isNone ? ' none' : '') + (e === peState.nameEmoji ? ' on' : '');
+    b.textContent = isNone ? '없음' : e;
+    b.onclick = () => { peState.nameEmoji = e; ne.querySelectorAll('.pe-emoji').forEach(x=>x.classList.remove('on')); b.classList.add('on'); pePreview(); };
+    ne.appendChild(b);
+  });
+
+  // 뱃지
+  const bd = document.getElementById('pe-badges'); bd.innerHTML = '';
+  Object.keys(BADGE_CATALOG).forEach(k => {
+    const c = BADGE_CATALOG[k];
+    const b = document.createElement('button');
+    b.className = 'pe-bchip' + (peState.badges.includes(k) ? ' on' : '');
+    b.textContent = c.i + ' ' + c.l;
+    b.onclick = () => {
+      const i = peState.badges.indexOf(k);
+      if (i >= 0) { peState.badges.splice(i,1); b.classList.remove('on'); }
+      else if (peState.badges.length >= BADGE_MAX) { sToast('뱃지는 최대 ' + BADGE_MAX + '개까지 선택할 수 있어요'); return; }
+      else { peState.badges.push(k); b.classList.add('on'); }
+    };
+    bd.appendChild(b);
+  });
+
+  pePreview();
+  document.getElementById('profileEdit').classList.add('show');
+}
+
+function pePreview(){
+  const nick = document.getElementById('pe-nick').value.trim() || '닉네임';
+  const bio = document.getElementById('pe-bio').value.trim();
+  document.getElementById('pe-prev-av').textContent = peState.avatar;
+  document.getElementById('pe-prev-nm').textContent = nick + ' 님' + (peState.nameEmoji ? ' ' + peState.nameEmoji : '');
+  document.getElementById('pe-prev-bio').textContent = bio || '소개를 입력해 보세요';
+  document.getElementById('pe-bioCount').textContent = document.getElementById('pe-bio').value.length;
+}
+
+function closeProfileEdit(){
+  document.getElementById('profileEdit').classList.remove('show');
+}
+
+function saveProfile(){
+  PROFILE.avatar = peState.avatar;
+  PROFILE.nameEmoji = peState.nameEmoji;
+  PROFILE.badges = peState.badges.slice();
+  PROFILE.nick = document.getElementById('pe-nick').value.trim() || PROFILE.nick;
+  PROFILE.bio = document.getElementById('pe-bio').value.trim();
+  renderProfile();
+  closeProfileEdit();
+  sToast('프로필이 저장되었어요 ✅');
+}
+
+renderProfile();
+</script>
+</body>
+</html>

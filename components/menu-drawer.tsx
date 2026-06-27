@@ -7,10 +7,15 @@ import type { CurrentProfile } from "@/lib/profile";
 
 const menuItems = [
   { href: "/dashboard", label: "내 실적", emoji: "📊" },
+  { href: "/rank", label: "라이더 랭킹", emoji: "🏆" },
   { href: "/accident", label: "사고접수", emoji: "🚨" },
-  { href: "/lease", label: "리스/렌탈", emoji: "🚗" },
-  { href: "/news", label: "배달뉴스", emoji: "📰" },
   { href: "/centers", label: "내 주변 정비소", emoji: "🔧" },
+  { href: "/gas", label: "내 주변 주유소", emoji: "⛽" },
+  { href: "/food", label: "내 주변 맛집", emoji: "🍜" },
+  { href: "/partners", label: "우리지역 협력사", emoji: "🏢" },
+  { href: "/lease", label: "리스/렌탈", emoji: "🚗" },
+  { href: "/cars", label: "신차/중고차", emoji: "🚙" },
+  { href: "/news", label: "배달뉴스", emoji: "📰" },
   { href: "/shop", label: "라이더 용품샵", emoji: "🛍️" },
 ];
 

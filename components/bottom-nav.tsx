@@ -99,6 +99,7 @@ const HIDDEN_ON = [
   "/post/", // 글 상세
   "/u/", // 유저 프로필·팔로워·팔로잉
   "/shop/cart", // 장바구니(자체 주문 바)
+  "/accident", // 사고접수 폼
 ];
 
 export default function BottomNav() {
