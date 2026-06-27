@@ -61,6 +61,12 @@ export default function ShortUploadForm() {
         caption: caption.trim() || null,
       });
       if (insErr) throw insErr;
+      // 피드(게시글)에도 자동 등록
+      await supabase.from("posts").insert({
+        content: caption.trim() || null,
+        image_urls: isVideo ? [] : [publicUrl],
+        video_url: isVideo ? publicUrl : null,
+      });
 
       router.push("/shorts");
       router.refresh();

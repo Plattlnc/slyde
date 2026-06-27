@@ -188,6 +188,12 @@ export default function CameraCreate() {
         caption: caption.trim() || null,
       });
       if (insErr) throw insErr;
+      // 피드(게시글)에도 자동 등록
+      await supabase.from("posts").insert({
+        content: caption.trim() || null,
+        image_urls: pending.type === "image" ? [publicUrl] : [],
+        video_url: pending.type === "video" ? publicUrl : null,
+      });
       stopCamera();
       router.push("/shorts");
       router.refresh();
