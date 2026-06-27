@@ -84,6 +84,15 @@ export async function fetchUserPosts(userId: string): Promise<FeedPost[]> {
       .limit(50);
     if (!data) return [];
 
+    // 작성자(=userId) 현재 아바타
+    const { data: pr } = await supabase
+      .from("profiles")
+      .select("avatar, avatar_url")
+      .eq("id", userId)
+      .single();
+    const avatarEmoji = (pr?.avatar as string) ?? "🛵";
+    const avatarUrl = (pr?.avatar_url as string) ?? null;
+
     return data.map((p) => ({
       id: p.id as string,
       real: true,
@@ -91,7 +100,8 @@ export async function fetchUserPosts(userId: string): Promise<FeedPost[]> {
       mine: user ? p.author_id === user.id : false,
       author: (p.author_name as string) ?? "라이더",
       tier: ((p.author_tier as string) ?? "개인회원") as FeedPost["tier"],
-      avatarEmoji: "🛵",
+      avatarEmoji,
+      avatarUrl,
       time: relativeTime(p.created_at as string),
       text: (p.content as string) ?? "",
       images: (p.image_urls as string[]) ?? [],

@@ -31,11 +31,15 @@ type PostRow = {
   video_url: string | null;
 };
 
+type AvatarInfo = { avatar: string; avatar_url: string | null };
+
 function toFeedPost(
   p: PostRow,
   userId: string | null,
   likedSet: Set<string>,
+  avatarMap?: Map<string, AvatarInfo>,
 ): FeedPost {
+  const av = avatarMap?.get(p.author_id);
   return {
     id: p.id,
     real: true,
@@ -43,7 +47,8 @@ function toFeedPost(
     mine: userId ? p.author_id === userId : false,
     author: p.author_name ?? "라이더",
     tier: (p.author_tier ?? "개인회원") as FeedPost["tier"],
-    avatarEmoji: "🛵",
+    avatarEmoji: av?.avatar ?? "🛵",
+    avatarUrl: av?.avatar_url ?? null,
     time: relativeTime(p.created_at),
     text: p.content ?? "",
     images: p.image_urls ?? [],
@@ -87,7 +92,23 @@ export async function fetchFeedPosts(): Promise<FeedPost[]> {
       likedSet = new Set((likes ?? []).map((l) => l.post_id as string));
     }
 
-    return rows.map((p) => toFeedPost(p, user?.id ?? null, likedSet));
+    // 작성자 현재 아바타
+    const authorIds = [...new Set(rows.map((r) => r.author_id))];
+    const avatarMap = new Map<string, AvatarInfo>();
+    if (authorIds.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, avatar, avatar_url")
+        .in("id", authorIds);
+      (profs ?? []).forEach((pr) =>
+        avatarMap.set(pr.id as string, {
+          avatar: (pr.avatar as string) ?? "🛵",
+          avatar_url: (pr.avatar_url as string) ?? null,
+        }),
+      );
+    }
+
+    return rows.map((p) => toFeedPost(p, user?.id ?? null, likedSet, avatarMap));
   } catch {
     return [];
   }
@@ -121,7 +142,18 @@ export async function fetchPost(id: string): Promise<FeedPost | null> {
       liked = !!l;
     }
     const likedSet = liked ? new Set([id]) : new Set<string>();
-    return toFeedPost(data as PostRow, user?.id ?? null, likedSet);
+    const row = data as PostRow;
+    const avatarMap = new Map<string, AvatarInfo>();
+    const { data: pr } = await supabase
+      .from("profiles")
+      .select("avatar, avatar_url")
+      .eq("id", row.author_id)
+      .single();
+    avatarMap.set(row.author_id, {
+      avatar: (pr?.avatar as string) ?? "🛵",
+      avatar_url: (pr?.avatar_url as string) ?? null,
+    });
+    return toFeedPost(row, user?.id ?? null, likedSet, avatarMap);
   } catch {
     return null;
   }

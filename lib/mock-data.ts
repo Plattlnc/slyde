@@ -85,6 +85,7 @@ export type FeedPost = {
   tier: "개인회원" | "협력사회원" | "기업회원";
   company?: string;
   avatarEmoji: string;
+  avatarUrl?: string | null; // 작성자 프로필 사진(있으면 우선)
   time: string; // 상대 시간 표기 (예: "2시간")
   text: string;
   image?: { emoji: string; gradient: string }; // 이미지 자리 (mock 데모)

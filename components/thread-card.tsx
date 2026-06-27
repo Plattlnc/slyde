@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import PostImages from "@/components/post-images";
+import Avatar from "@/components/avatar";
 import type { FeedPost } from "@/lib/mock-data";
 
 function formatCount(n: number) {
@@ -89,9 +90,12 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
   return (
     <article className="flex gap-3 border-b border-slate-200 bg-white px-4 py-3">
       {/* 아바타 */}
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
-        {post.avatarEmoji}
-      </div>
+      <Avatar
+        url={post.avatarUrl}
+        emoji={post.avatarEmoji}
+        className="h-10 w-10"
+        emojiClass="text-xl"
+      />
 
       {/* 본문 영역 */}
       <div className="min-w-0 flex-1">
