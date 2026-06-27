@@ -10,6 +10,8 @@ type SC = {
   avatar: string;
   avatarUrl: string | null;
   text: string;
+  likeCount: number;
+  likedByMe: boolean;
 };
 
 export default function ShortCommentSheet({
@@ -36,12 +38,28 @@ export default function ShortCommentSheet({
     setLoading(true);
     (async () => {
       const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const { data } = await supabase
         .from("short_comments")
-        .select("id, author_id, author_name, content, created_at")
+        .select("id, author_id, author_name, content, created_at, like_count")
         .eq("short_id", shortId)
         .order("created_at", { ascending: true });
       const rows = data ?? [];
+      // 내가 좋아요한 댓글
+      let likedSet = new Set<string>();
+      if (user && rows.length) {
+        const { data: likes } = await supabase
+          .from("short_comment_likes")
+          .select("comment_id")
+          .eq("user_id", user.id)
+          .in(
+            "comment_id",
+            rows.map((r) => r.id as string),
+          );
+        likedSet = new Set((likes ?? []).map((l) => l.comment_id as string));
+      }
       const ids = [...new Set(rows.map((r) => r.author_id as string))];
       const aMap = new Map<string, { avatar: string; avatar_url: string | null }>();
       if (ids.length) {
@@ -64,6 +82,8 @@ export default function ShortCommentSheet({
           avatar: aMap.get(c.author_id as string)?.avatar ?? "🛵",
           avatarUrl: aMap.get(c.author_id as string)?.avatar_url ?? null,
           text: c.content as string,
+          likeCount: (c.like_count as number) ?? 0,
+          likedByMe: likedSet.has(c.id as string),
         })),
       );
       setLoading(false);
@@ -100,8 +120,43 @@ export default function ShortCommentSheet({
           avatar: me.avatar,
           avatarUrl: me.avatarUrl,
           text: body,
+          likeCount: 0,
+          likedByMe: false,
         },
       ]);
+  }
+
+  async function toggleLike(id: string) {
+    const c = comments.find((x) => x.id === id);
+    if (!c) return;
+    const next = !c.likedByMe;
+    setComments((prev) =>
+      prev.map((x) =>
+        x.id === id
+          ? { ...x, likedByMe: next, likeCount: x.likeCount + (next ? 1 : -1) }
+          : x,
+      ),
+    );
+    const supabase = createClient();
+    const { error } = next
+      ? await supabase.from("short_comment_likes").insert({ comment_id: id })
+      : await supabase
+          .from("short_comment_likes")
+          .delete()
+          .eq("comment_id", id);
+    if (error) {
+      setComments((prev) =>
+        prev.map((x) =>
+          x.id === id
+            ? {
+                ...x,
+                likedByMe: !next,
+                likeCount: x.likeCount + (next ? -1 : 1),
+              }
+            : x,
+        ),
+      );
+    }
   }
 
   return (
@@ -158,6 +213,16 @@ export default function ShortCommentSheet({
                       {c.text}
                     </p>
                   </div>
+                  <button
+                    onClick={() => toggleLike(c.id)}
+                    aria-label="좋아요"
+                    className="flex shrink-0 flex-col items-center gap-0.5 pt-0.5 text-slate-500 active:scale-90"
+                  >
+                    <span className="text-sm">{c.likedByMe ? "❤️" : "🤍"}</span>
+                    {c.likeCount > 0 && (
+                      <span className="text-[11px]">{c.likeCount}</span>
+                    )}
+                  </button>
                 </div>
               ))}
             </div>
