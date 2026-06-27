@@ -14,10 +14,7 @@ export default function FeedTopBar({
     <header className="pt-safe sticky top-0 z-20 border-b border-slate-200 bg-slate-50/80 backdrop-blur">
       <div className="flex h-12 items-center justify-between px-4">
         <MenuDrawer profile={profile} />
-        <div className="flex items-center gap-1">
-          <span className="wordmark text-[27px] text-slate-900">slyde</span>
-          <span className="text-base">🛵</span>
-        </div>
+        <span className="wordmark text-[27px] text-slate-900">slyde</span>
         <div className="flex items-center gap-4 text-slate-700">
           <Link href="/search" aria-label="검색" className="active:scale-90">
             <SearchIcon size={22} />
