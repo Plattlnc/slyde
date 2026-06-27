@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import type { FeedPost } from "@/lib/mock-data";
 
 const tierBadge: Record<FeedPost["tier"], string> = {
@@ -14,15 +17,69 @@ function formatCount(n: number) {
 }
 
 export default function ThreadCard({ post }: { post: FeedPost }) {
-  const [liked, setLiked] = useState(!!post.liked);
+  const router = useRouter();
+  const [liked, setLiked] = useState(!!(post.likedByMe ?? post.liked));
   const [likes, setLikes] = useState(post.likes);
+  const [busy, setBusy] = useState(false);
+  const [deleted, setDeleted] = useState(false);
 
-  const toggleLike = () => {
-    setLiked((prev) => {
-      setLikes((c) => c + (prev ? -1 : 1));
-      return !prev;
-    });
-  };
+  if (deleted) return null;
+
+  async function toggleLike() {
+    const next = !liked;
+    // 낙관적 업데이트
+    setLiked(next);
+    setLikes((c) => c + (next ? 1 : -1));
+
+    if (!post.real) return; // mock 글은 로컬 토글만
+
+    const supabase = createClient();
+    const { error } = next
+      ? await supabase.from("post_likes").insert({ post_id: post.id })
+      : await supabase.from("post_likes").delete().eq("post_id", post.id);
+
+    if (error) {
+      // 실패 시 롤백
+      setLiked(!next);
+      setLikes((c) => c + (next ? -1 : 1));
+    }
+  }
+
+  async function handleDelete() {
+    if (busy) return;
+    if (!confirm("이 글을 삭제할까요?")) return;
+    setBusy(true);
+    const supabase = createClient();
+    const { error } = await supabase.from("posts").delete().eq("id", post.id);
+    setBusy(false);
+    if (!error) {
+      setDeleted(true);
+      router.refresh();
+    } else {
+      alert("삭제 실패: " + error.message);
+    }
+  }
+
+  async function handleShare() {
+    const url = post.real
+      ? `${window.location.origin}/post/${post.id}`
+      : window.location.origin;
+    const data = { title: "slyde", text: post.text, url };
+    if (navigator.share) {
+      try {
+        await navigator.share(data);
+      } catch {
+        /* 사용자가 취소 */
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert("링크가 복사됐어요");
+      } catch {
+        /* noop */
+      }
+    }
+  }
 
   return (
     <article className="flex gap-3 border-b border-slate-200 bg-white px-4 py-3">
@@ -53,15 +110,33 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
               {post.time}
             </span>
           )}
+          {post.mine && (
+            <button
+              onClick={handleDelete}
+              disabled={busy}
+              aria-label="삭제"
+              className="ml-1 shrink-0 px-1 text-slate-400 active:scale-90"
+            >
+              🗑️
+            </button>
+          )}
         </div>
         {post.company && !post.sponsored && (
           <p className="text-[11px] text-slate-400">{post.company}</p>
         )}
 
-        {/* 본문 */}
-        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
-          {post.text}
-        </p>
+        {/* 본문 (실글이면 상세로) */}
+        {post.real ? (
+          <Link href={`/post/${post.id}`} className="block">
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+              {post.text}
+            </p>
+          </Link>
+        ) : (
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+            {post.text}
+          </p>
+        )}
 
         {/* 이미지 자리 (데모) */}
         {post.image && (
@@ -100,21 +175,29 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
               {formatCount(likes)}
             </span>
           </button>
-          <button
-            aria-label="답글"
-            className="flex items-center gap-1 text-sm active:scale-90"
-          >
-            <span className="text-base">💬</span>
-            <span>{formatCount(post.replies)}</span>
-          </button>
-          <button
-            aria-label="리포스트"
-            className="flex items-center gap-1 text-sm active:scale-90"
-          >
+
+          {post.real ? (
+            <Link
+              href={`/post/${post.id}`}
+              aria-label="댓글"
+              className="flex items-center gap-1 text-sm active:scale-90"
+            >
+              <span className="text-base">💬</span>
+              <span>{formatCount(post.replies)}</span>
+            </Link>
+          ) : (
+            <span className="flex items-center gap-1 text-sm">
+              <span className="text-base">💬</span>
+              <span>{formatCount(post.replies)}</span>
+            </span>
+          )}
+
+          <span className="flex items-center gap-1 text-sm">
             <span className="text-base">🔁</span>
             <span>{formatCount(post.reposts)}</span>
-          </button>
+          </span>
           <button
+            onClick={handleShare}
             aria-label="공유"
             className="ml-auto text-base active:scale-90"
           >
