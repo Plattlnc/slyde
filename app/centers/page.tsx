@@ -1,5 +1,12 @@
-import CentersMap from "@/components/centers-map";
+import PlacesMap from "@/components/places-map";
 
 export default function CentersPage() {
-  return <CentersMap />;
+  return (
+    <PlacesMap
+      keyword="오토바이"
+      title="🔧 내 주변 정비소"
+      itemEmoji="🔧"
+      showSos
+    />
+  );
 }

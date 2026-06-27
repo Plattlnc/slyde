@@ -1,10 +1,5 @@
-import SubPage from "@/components/sub-page";
-import GasList from "@/components/gas-list";
+import PlacesMap from "@/components/places-map";
 
 export default function GasPage() {
-  return (
-    <SubPage emoji="⛽" title="내 주변 주유소">
-      <GasList />
-    </SubPage>
-  );
+  return <PlacesMap keyword="주유소" title="⛽ 내 주변 주유소" itemEmoji="⛽" />;
 }
