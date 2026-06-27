@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -7,6 +8,13 @@ import { createClient } from "@/lib/supabase/client";
 
 type Mode = "동영상" | "Shorts" | "라이브" | "게시물";
 const MODES: Mode[] = ["동영상", "Shorts", "라이브", "게시물"];
+
+type Pending = {
+  blob: Blob;
+  type: "image" | "video";
+  url: string;
+  ext: string;
+};
 
 export default function CameraCreate() {
   const router = useRouter();
@@ -16,18 +24,25 @@ export default function CameraCreate() {
   const chunksRef = useRef<Blob[]>([]);
   const intentRef = useRef<"photo" | "video">("photo");
   const pressStartRef = useRef(0);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const videoFileRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<Mode>("Shorts");
   const [facing, setFacing] = useState<"user" | "environment">("environment");
   const [recording, setRecording] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [camError, setCamError] = useState(false);
 
-  // 카메라 시작/재시작
+  // 편집 단계
+  const [pending, setPending] = useState<Pending | null>(null);
+  const [caption, setCaption] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const needCamera = mode === "Shorts" && !pending;
+
+  // 카메라 시작/재시작 (Shorts 촬영 단계에서만)
   useEffect(() => {
+    if (!needCamera) return;
     let cancelled = false;
-    async function start() {
+    (async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: facing },
@@ -43,53 +58,19 @@ export default function CameraCreate() {
       } catch {
         setCamError(true);
       }
-    }
-    start();
+    })();
     return () => {
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     };
-  }, [facing]);
+  }, [facing, needCamera]);
 
   function stopCamera() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
   }
 
-  async function uploadBlob(blob: Blob, type: "image" | "video", ext: string) {
-    setBusy(true);
-    try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("shorts")
-        .upload(path, blob, {
-          contentType: blob.type || (type === "video" ? "video/webm" : "image/jpeg"),
-        });
-      if (upErr) throw upErr;
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("shorts").getPublicUrl(path);
-      const { error: insErr } = await supabase
-        .from("shorts")
-        .insert({ media_url: publicUrl, media_type: type, caption: null });
-      if (insErr) throw insErr;
-      stopCamera();
-      router.push("/shorts");
-      router.refresh();
-    } catch (e) {
-      alert("업로드 실패: " + (e instanceof Error ? e.message : ""));
-      setBusy(false);
-    }
-  }
-
+  // ── 캡처 → 편집(pending) ──
   function capturePhoto() {
     const v = videoRef.current;
     if (!v || !v.videoWidth) return;
@@ -99,7 +80,8 @@ export default function CameraCreate() {
     canvas.getContext("2d")?.drawImage(v, 0, 0);
     canvas.toBlob(
       (b) => {
-        if (b) uploadBlob(b, "image", "jpg");
+        if (b)
+          setPending({ blob: b, type: "image", url: URL.createObjectURL(b), ext: "jpg" });
       },
       "image/jpeg",
       0.9,
@@ -118,16 +100,15 @@ export default function CameraCreate() {
       if (e.data.size) chunksRef.current.push(e.data);
     };
     rec.onstop = () => {
-      if (intentRef.current === "video") {
-        const blob = new Blob(chunksRef.current, { type: "video/webm" });
-        if (blob.size > 0) uploadBlob(blob, "video", "webm");
-      }
+      if (intentRef.current !== "video") return;
+      const blob = new Blob(chunksRef.current, { type: "video/webm" });
+      if (blob.size > 0)
+        setPending({ blob, type: "video", url: URL.createObjectURL(blob), ext: "webm" });
     };
     recorderRef.current = rec;
     rec.start();
     setRecording(true);
   }
-
   function stopRecording() {
     recorderRef.current?.stop();
     setRecording(false);
@@ -144,7 +125,6 @@ export default function CameraCreate() {
     if (busy || camError) return;
     const elapsed = Date.now() - pressStartRef.current;
     if (elapsed < 350) {
-      // 탭 → 사진 (녹화분 버림)
       intentRef.current = "photo";
       stopRecording();
       capturePhoto();
@@ -152,6 +132,12 @@ export default function CameraCreate() {
       intentRef.current = "video";
       stopRecording();
     }
+  }
+
+  function onPickVideo(f: File | null) {
+    if (!f) return;
+    const ext = (f.name.split(".").pop() || "mp4").toLowerCase();
+    setPending({ blob: f, type: "video", url: URL.createObjectURL(f), ext });
   }
 
   function selectMode(m: Mode) {
@@ -165,27 +151,116 @@ export default function CameraCreate() {
       return;
     }
     setMode(m);
+    if (m === "동영상") {
+      // 저장된 동영상 선택
+      setTimeout(() => videoFileRef.current?.click(), 0);
+    }
   }
 
-  function onPickFile(f: File | null) {
-    if (!f) return;
-    const type = f.type.startsWith("video") ? "video" : "image";
-    const ext = (f.name.split(".").pop() || "bin").toLowerCase();
-    uploadBlob(f, type, ext);
+  // ── 게시 (편집 완료 → 업로드) ──
+  async function publish() {
+    if (!pending || busy) return;
+    setBusy(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      const path = `${user.id}/${crypto.randomUUID()}.${pending.ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("shorts")
+        .upload(path, pending.blob, {
+          contentType:
+            pending.blob.type ||
+            (pending.type === "video" ? "video/webm" : "image/jpeg"),
+        });
+      if (upErr) throw upErr;
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("shorts").getPublicUrl(path);
+      const { error: insErr } = await supabase.from("shorts").insert({
+        media_url: publicUrl,
+        media_type: pending.type,
+        caption: caption.trim() || null,
+      });
+      if (insErr) throw insErr;
+      stopCamera();
+      router.push("/shorts");
+      router.refresh();
+    } catch (e) {
+      alert("업로드 실패: " + (e instanceof Error ? e.message : ""));
+      setBusy(false);
+    }
   }
 
-  const canShoot = mode === "동영상" || mode === "Shorts";
+  function retake() {
+    if (pending) URL.revokeObjectURL(pending.url);
+    setPending(null);
+    setCaption("");
+  }
 
+  // ════════════ 편집 화면 ════════════
+  if (pending) {
+    return (
+      <div className="flex h-full w-full flex-col bg-black">
+        <div className="pt-safe flex items-center justify-between p-4 text-white">
+          <button onClick={retake} className="text-sm active:scale-95">
+            ← 다시
+          </button>
+          <span className="text-sm font-bold">편집</span>
+          <button
+            onClick={publish}
+            disabled={busy}
+            className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-black active:scale-95 disabled:opacity-50"
+          >
+            {busy ? "게시 중…" : "게시"}
+          </button>
+        </div>
+
+        {/* 미리보기 */}
+        <div className="flex flex-1 items-center justify-center overflow-hidden">
+          {pending.type === "video" ? (
+            <video
+              src={pending.url}
+              className="max-h-full max-w-full"
+              controls
+              loop
+              playsInline
+              autoPlay
+              muted
+            />
+          ) : (
+            <img
+              src={pending.url}
+              alt="미리보기"
+              className="max-h-full max-w-full object-contain"
+            />
+          )}
+        </div>
+
+        {/* 문구 입력 (편집) */}
+        <div className="pb-safe bg-black p-4">
+          <input
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            maxLength={300}
+            placeholder="문구 추가… (선택)"
+            className="w-full rounded-xl bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════ 촬영/선택 화면 ════════════
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      {/* 카메라 미리보기 */}
-      {camError ? (
-        <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center text-white/70">
-          <span className="text-4xl">📷🚫</span>
-          <p className="text-sm">카메라를 사용할 수 없어요.</p>
-          <p className="text-xs">권한을 허용하거나, 아래 갤러리로 올려보세요.</p>
-        </div>
-      ) : (
+      {/* 미리보기 (Shorts 모드) */}
+      {mode === "Shorts" && !camError ? (
         <video
           ref={videoRef}
           autoPlay
@@ -193,9 +268,31 @@ export default function CameraCreate() {
           playsInline
           className="h-full w-full object-cover"
         />
+      ) : (
+        <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center text-white/70">
+          <span className="text-5xl">{mode === "동영상" ? "🎞️" : "📷"}</span>
+          <p className="text-sm">
+            {mode === "동영상"
+              ? "저장된 동영상을 선택하세요"
+              : camError
+                ? "카메라를 사용할 수 없어요"
+                : ""}
+          </p>
+        </div>
       )}
 
-      {/* 상단: 닫기 */}
+      <input
+        ref={videoFileRef}
+        type="file"
+        accept="video/*"
+        className="hidden"
+        onChange={(e) => {
+          onPickVideo(e.target.files?.[0] ?? null);
+          e.target.value = "";
+        }}
+      />
+
+      {/* 상단: 닫기 / 전환 */}
       <div className="pt-safe absolute inset-x-0 top-0 flex items-center justify-between p-4">
         <Link
           href="/"
@@ -204,7 +301,7 @@ export default function CameraCreate() {
         >
           ✕
         </Link>
-        {!camError && (
+        {mode === "Shorts" && !camError && (
           <button
             onClick={() => setFacing((f) => (f === "user" ? "environment" : "user"))}
             aria-label="카메라 전환"
@@ -217,53 +314,37 @@ export default function CameraCreate() {
 
       {/* 하단 컨트롤 */}
       <div className="pb-safe absolute inset-x-0 bottom-0 pb-4">
-        {/* 촬영 버튼 줄 */}
-        <div className="mb-4 flex items-center justify-around px-10">
-          {/* 갤러리 */}
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={busy}
-            aria-label="갤러리"
-            className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/15 text-xl text-white active:scale-90"
-          >
-            🖼️
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*,video/*"
-            className="hidden"
-            onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
-          />
-
-          {/* 셔터 */}
-          <button
-            onPointerDown={canShoot ? onShutterDown : undefined}
-            onPointerUp={canShoot ? onShutterUp : undefined}
-            onPointerLeave={canShoot && recording ? onShutterUp : undefined}
-            disabled={!canShoot || busy}
-            aria-label="촬영"
-            className={`flex h-20 w-20 items-center justify-center rounded-full border-4 transition active:scale-95 disabled:opacity-40 ${
-              recording ? "border-red-500" : "border-white"
-            }`}
-          >
-            <span
-              className={`transition-all ${
-                recording
-                  ? "h-7 w-7 rounded bg-red-500"
-                  : "h-14 w-14 rounded-full bg-white"
+        <div className="mb-4 flex items-center justify-center px-10">
+          {mode === "Shorts" ? (
+            <button
+              onPointerDown={onShutterDown}
+              onPointerUp={onShutterUp}
+              onPointerLeave={recording ? onShutterUp : undefined}
+              disabled={camError}
+              aria-label="촬영"
+              className={`flex h-20 w-20 items-center justify-center rounded-full border-4 transition active:scale-95 disabled:opacity-40 ${
+                recording ? "border-red-500" : "border-white"
               }`}
-            />
-          </button>
-
-          {/* 빈 칸 (균형) */}
-          <div className="h-11 w-11" />
+            >
+              <span
+                className={`transition-all ${
+                  recording
+                    ? "h-7 w-7 rounded bg-red-500"
+                    : "h-14 w-14 rounded-full bg-white"
+                }`}
+              />
+            </button>
+          ) : (
+            <button
+              onClick={() => videoFileRef.current?.click()}
+              className="rounded-full bg-white px-6 py-3.5 text-sm font-bold text-black active:scale-95"
+            >
+              🎞️ 동영상 선택
+            </button>
+          )}
         </div>
 
-        {busy && (
-          <p className="mb-2 text-center text-xs text-white">업로드 중…</p>
-        )}
-        {canShoot && !busy && (
+        {mode === "Shorts" && !camError && (
           <p className="mb-2 text-center text-[11px] text-white/60">
             탭 = 사진 · 길게 누르면 = 영상
           </p>
