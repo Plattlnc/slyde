@@ -3,16 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import Avatar from "@/components/avatar";
 import type { ChatMessage } from "@/lib/messages";
 
 export default function ChatThread({
   otherId,
   otherName,
+  otherAvatar,
+  otherAvatarUrl,
   myId,
   initial,
 }: {
   otherId: string;
   otherName: string;
+  otherAvatar: string;
+  otherAvatarUrl: string | null;
   myId: string;
   initial: ChatMessage[];
 }) {
@@ -113,9 +118,12 @@ export default function ChatThread({
           >
             ←
           </Link>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-base">
-            🛵
-          </div>
+          <Avatar
+            url={otherAvatarUrl}
+            emoji={otherAvatar}
+            className="h-8 w-8"
+            emojiClass="text-base"
+          />
           <p className="text-sm font-bold text-slate-900">{otherName}</p>
         </div>
       </header>

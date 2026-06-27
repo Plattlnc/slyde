@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Avatar from "@/components/avatar";
 import { fetchConversations } from "@/lib/messages";
 
 export default async function MessagesPage() {
@@ -38,9 +39,12 @@ export default async function MessagesPage() {
               href={`/messages/${c.otherId}`}
               className="flex items-center gap-3 bg-white px-4 py-3 active:bg-slate-50"
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-2xl">
-                🛵
-              </div>
+              <Avatar
+                url={c.avatarUrl}
+                emoji={c.avatar}
+                className="h-12 w-12"
+                emojiClass="text-2xl"
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
                   <span className="truncate text-sm font-bold text-slate-900">

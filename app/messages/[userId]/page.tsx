@@ -26,6 +26,8 @@ export default async function ChatPage({
     <ChatThread
       otherId={userId}
       otherName={partner.name}
+      otherAvatar={partner.avatar}
+      otherAvatarUrl={partner.avatarUrl}
       myId={user.id}
       initial={initial}
     />

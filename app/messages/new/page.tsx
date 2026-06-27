@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Avatar from "@/components/avatar";
 import { fetchUsers } from "@/lib/messages";
 import { createClient } from "@/lib/supabase/server";
 
@@ -41,9 +42,12 @@ export default async function NewMessagePage() {
               href={`/messages/${u.id}`}
               className="flex items-center gap-3 bg-white px-4 py-3 active:bg-slate-50"
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
-                🛵
-              </div>
+              <Avatar
+                url={u.avatarUrl}
+                emoji={u.avatar}
+                className="h-11 w-11"
+                emojiClass="text-xl"
+              />
               <span className="text-sm font-semibold text-slate-900">
                 {u.name}
               </span>

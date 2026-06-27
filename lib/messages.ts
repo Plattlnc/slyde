@@ -5,6 +5,8 @@ export type Conversation = {
   otherId: string;
   name: string;
   tier: string;
+  avatar: string;
+  avatarUrl: string | null;
   lastText: string;
   time: string;
   fromMe: boolean;
@@ -17,7 +19,13 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export type UserLite = { id: string; name: string; tier: string };
+export type UserLite = {
+  id: string;
+  name: string;
+  tier: string;
+  avatar: string;
+  avatarUrl: string | null;
+};
 
 // 대화 목록 (상대별 최근 메시지)
 export async function fetchConversations(): Promise<Conversation[]> {
@@ -37,7 +45,7 @@ export async function fetchConversations(): Promise<Conversation[]> {
 
     const seen = new Map<
       string,
-      Omit<Conversation, "name" | "tier">
+      Omit<Conversation, "name" | "tier" | "avatar" | "avatarUrl">
     >();
     for (const m of msgs) {
       const other =
@@ -56,15 +64,20 @@ export async function fetchConversations(): Promise<Conversation[]> {
     if (!ids.length) return [];
     const { data: profs } = await supabase
       .from("profiles")
-      .select("id, name, tier")
+      .select("id, name, tier, avatar, avatar_url")
       .in("id", ids);
     const nameMap = new Map((profs ?? []).map((p) => [p.id, p]));
 
-    return [...seen.values()].map((c) => ({
-      ...c,
-      name: (nameMap.get(c.otherId)?.name as string) ?? "라이더",
-      tier: (nameMap.get(c.otherId)?.tier as string) ?? "개인회원",
-    }));
+    return [...seen.values()].map((c) => {
+      const p = nameMap.get(c.otherId);
+      return {
+        ...c,
+        name: (p?.name as string) ?? "라이더",
+        tier: (p?.tier as string) ?? "개인회원",
+        avatar: (p?.avatar as string) ?? "🛵",
+        avatarUrl: (p?.avatar_url as string) ?? null,
+      };
+    });
   } catch {
     return [];
   }
@@ -105,7 +118,7 @@ export async function fetchPartner(otherId: string): Promise<UserLite | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from("profiles")
-      .select("id, name, tier")
+      .select("id, name, tier, avatar, avatar_url")
       .eq("id", otherId)
       .single();
     if (!data) return null;
@@ -113,6 +126,8 @@ export async function fetchPartner(otherId: string): Promise<UserLite | null> {
       id: data.id as string,
       name: (data.name as string) ?? "라이더",
       tier: (data.tier as string) ?? "개인회원",
+      avatar: (data.avatar as string) ?? "🛵",
+      avatarUrl: (data.avatar_url as string) ?? null,
     };
   } catch {
     return null;
@@ -129,13 +144,15 @@ export async function fetchUsers(): Promise<UserLite[]> {
     if (!user) return [];
     const { data } = await supabase
       .from("profiles")
-      .select("id, name, tier")
+      .select("id, name, tier, avatar, avatar_url")
       .neq("id", user.id)
       .limit(100);
     return (data ?? []).map((p) => ({
       id: p.id as string,
       name: (p.name as string) ?? "라이더",
       tier: (p.tier as string) ?? "개인회원",
+      avatar: (p.avatar as string) ?? "🛵",
+      avatarUrl: (p.avatar_url as string) ?? null,
     }));
   } catch {
     return [];
