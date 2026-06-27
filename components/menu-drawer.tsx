@@ -60,12 +60,26 @@ export default function MenuDrawer({
 
   useEffect(() => setMounted(true), []);
 
-  // 스와이프 등 외부에서 메뉴 열기 신호
+  // 스와이프 등 외부에서 메뉴 열기/닫기 신호
   useEffect(() => {
-    const h = () => setOpen(true);
-    window.addEventListener("slyde:open-menu", h);
-    return () => window.removeEventListener("slyde:open-menu", h);
+    const openH = () => setOpen(true);
+    const closeH = () => setOpen(false);
+    window.addEventListener("slyde:open-menu", openH);
+    window.addEventListener("slyde:close-menu", closeH);
+    return () => {
+      window.removeEventListener("slyde:open-menu", openH);
+      window.removeEventListener("slyde:close-menu", closeH);
+    };
   }, []);
+
+  // 열림 상태를 전역 플래그로 (SwipeNav가 참조)
+  useEffect(() => {
+    (window as unknown as { __slydeMenuOpen?: boolean }).__slydeMenuOpen = open;
+    return () => {
+      (window as unknown as { __slydeMenuOpen?: boolean }).__slydeMenuOpen =
+        false;
+    };
+  }, [open]);
 
   // 열렸을 때 뒤 배경 스크롤 잠금
   useEffect(() => {

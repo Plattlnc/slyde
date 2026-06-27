@@ -31,6 +31,13 @@ export default function SwipeNav() {
       const dt = Date.now() - startT;
       // 빠르고, 가로 이동이 세로보다 확실히 큰 경우만
       if (dt < 600 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6) {
+        const menuOpen = (window as unknown as { __slydeMenuOpen?: boolean })
+          .__slydeMenuOpen;
+        // 메뉴 열려있으면: 왼쪽 스와이프로 닫기만, 탭 이동은 안 함
+        if (menuOpen) {
+          if (dx < 0) window.dispatchEvent(new Event("slyde:close-menu"));
+          return;
+        }
         if (dx < 0 && idx < TABS.length - 1) {
           router.push(TABS[idx + 1]); // 왼쪽 스와이프 → 다음 탭
         } else if (dx > 0) {
