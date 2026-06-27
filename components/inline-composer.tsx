@@ -1,37 +1,57 @@
 "use client";
 
-import { useState } from "react";
+/* eslint-disable @next/next/no-img-element */
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImages } from "@/lib/upload-media";
 import type { CurrentProfile } from "@/lib/profile";
 
-// 홈에서 바로 작성 → 게시 (페이지 이동 없이 인라인)
+const MAX_IMAGES = 4;
+
+// 홈에서 바로 작성 → 게시 (페이지 이동 없이 인라인, 사진 첨부 가능)
 export default function InlineComposer({
   profile,
 }: {
   profile?: CurrentProfile | null;
 }) {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const avatar = profile?.avatarEmoji ?? "🛵";
 
+  const canPost = (text.trim().length > 0 || files.length > 0) && !busy;
+
+  function addFiles(list: FileList | null) {
+    if (!list) return;
+    const imgs = Array.from(list).filter((f) => f.type.startsWith("image"));
+    setFiles((prev) => [...prev, ...imgs].slice(0, MAX_IMAGES));
+    setOpen(true);
+  }
+
   async function post() {
-    if (!text.trim() || busy) return;
+    if (!canPost) return;
     setBusy(true);
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("posts")
-      .insert({ content: text.trim() });
-    setBusy(false);
-    if (error) {
-      alert("게시 실패: " + error.message);
-      return;
+    try {
+      let image_urls: string[] = [];
+      if (files.length) image_urls = await uploadImages(files);
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("posts")
+        .insert({ content: text.trim() || null, image_urls });
+      if (error) throw error;
+      setText("");
+      setFiles([]);
+      setOpen(false);
+      router.refresh();
+    } catch (e) {
+      alert("게시 실패: " + (e instanceof Error ? e.message : ""));
+    } finally {
+      setBusy(false);
     }
-    setText("");
-    setOpen(false);
-    router.refresh(); // 피드 갱신 → 새 글 바로 표시
   }
 
   return (
@@ -40,7 +60,7 @@ export default function InlineComposer({
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
           {avatar}
         </div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -48,15 +68,59 @@ export default function InlineComposer({
             maxLength={1000}
             placeholder="무슨 일이 있나요?"
             className={`w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-slate-400 ${
-              open || text ? "min-h-[64px]" : "min-h-[24px]"
+              open || text ? "min-h-[56px]" : "min-h-[24px]"
             }`}
           />
-          {(open || text) && (
+
+          {/* 첨부 사진 미리보기 */}
+          {files.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {files.map((f, i) => (
+                <div key={i} className="relative h-20 w-20">
+                  <img
+                    src={URL.createObjectURL(f)}
+                    alt="첨부"
+                    className="h-full w-full rounded-lg object-cover"
+                  />
+                  <button
+                    onClick={() =>
+                      setFiles((prev) => prev.filter((_, idx) => idx !== i))
+                    }
+                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-xs text-white"
+                    aria-label="삭제"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(open || text || files.length > 0) && (
             <div className="mt-1 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">{text.length}/1000</span>
+              {/* 미디어 첨부 버튼 (Threads ＋) */}
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={files.length >= MAX_IMAGES}
+                aria-label="사진 첨부"
+                className="text-xl text-slate-500 active:scale-90 disabled:opacity-30"
+              >
+                🖼️
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  addFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
               <button
                 onClick={post}
-                disabled={!text.trim() || busy}
+                disabled={!canPost}
                 className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-40"
               >
                 {busy ? "게시 중…" : "게시"}

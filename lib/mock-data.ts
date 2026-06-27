@@ -87,7 +87,8 @@ export type FeedPost = {
   avatarEmoji: string;
   time: string; // 상대 시간 표기 (예: "2시간")
   text: string;
-  image?: { emoji: string; gradient: string }; // 이미지 자리 (데모)
+  image?: { emoji: string; gradient: string }; // 이미지 자리 (mock 데모)
+  images?: string[]; // 실제 첨부 사진 URL들
   replies: number;
   reposts: number;
   likes: number;

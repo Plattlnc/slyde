@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import PostImages from "@/components/post-images";
 import type { FeedPost } from "@/lib/mock-data";
 
 const tierBadge: Record<FeedPost["tier"], string> = {
@@ -136,19 +137,23 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
         )}
 
         {/* 본문 (실글이면 상세로) */}
-        {post.real ? (
-          <Link href={`/post/${post.id}`} className="block">
+        {post.text &&
+          (post.real ? (
+            <Link href={`/post/${post.id}`} className="block">
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+                {post.text}
+              </p>
+            </Link>
+          ) : (
             <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
               {post.text}
             </p>
-          </Link>
-        ) : (
-          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
-            {post.text}
-          </p>
-        )}
+          ))}
 
-        {/* 이미지 자리 (데모) */}
+        {/* 첨부 사진 */}
+        <PostImages images={post.images} />
+
+        {/* 이미지 자리 (mock 데모) */}
         {post.image && (
           <div
             className={`mt-2.5 flex aspect-[16/9] items-center justify-center rounded-2xl bg-gradient-to-br ${post.image.gradient} text-5xl`}
