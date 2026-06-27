@@ -28,8 +28,9 @@ export default function PageTransition({
   }, [pathname]);
 
   // key로 리마운트 → 애니메이션 재생
+  // h-full: /create(카메라)·/shorts 등 h-full 화면이 높이를 물려받게
   return (
-    <div key={pathname} className={`page-anim ${cls}`}>
+    <div key={pathname} className={`page-anim h-full ${cls}`}>
       {children}
     </div>
   );
