@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { rider } from "@/lib/mock-data";
+import Avatar from "@/components/avatar";
+import type { CurrentProfile } from "@/lib/profile";
 
 type IconProps = { active?: boolean };
 
@@ -108,7 +109,11 @@ const HIDDEN_ON = [
   "/notifications", // 알림
 ];
 
-export default function BottomNav() {
+export default function BottomNav({
+  profile,
+}: {
+  profile?: CurrentProfile | null;
+}) {
   const pathname = usePathname();
 
   // 로그인/회원가입에선 하단바 숨김
@@ -133,14 +138,13 @@ export default function BottomNav() {
                 {tab.Icon ? (
                   <tab.Icon active={active} />
                 ) : (
-                  // 내 프로필 = 아바타 (활성 시 링)
-                  <span
-                    className={`flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-base ${
-                      active ? "ring-2 ring-slate-900" : ""
-                    }`}
-                  >
-                    {rider.avatarEmoji}
-                  </span>
+                  // 내 프로필 = 실제 아바타 (활성 시 링)
+                  <Avatar
+                    url={profile?.avatarUrl}
+                    emoji={profile?.avatarEmoji}
+                    className={`h-7 w-7 ${active ? "ring-2 ring-slate-900" : ""}`}
+                    emojiClass="text-base"
+                  />
                 )}
               </Link>
             </li>

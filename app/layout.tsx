@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/bottom-nav";
 import SwipeNav from "@/components/swipe-nav";
+import { getCurrentProfile } from "@/lib/profile";
 
 export const metadata: Metadata = {
   title: "slyde — 라이더 슈퍼앱",
@@ -22,11 +23,12 @@ export const viewport: Viewport = {
   viewportFit: "cover", // 안전영역(env safe-area-inset) 활성화
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const profile = await getCurrentProfile();
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="bg-slate-200 text-slate-900 sm:grid sm:min-h-dvh sm:place-items-center sm:p-6">
@@ -37,7 +39,7 @@ export default function RootLayout({
             {children}
           </main>
           {/* 하단 탭바 (앱 셸 하단 고정) */}
-          <BottomNav />
+          <BottomNav profile={profile} />
           {/* 좌우 스와이프로 탭 이동 */}
           <SwipeNav />
         </div>
