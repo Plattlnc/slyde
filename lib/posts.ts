@@ -26,6 +26,7 @@ type PostRow = {
   created_at: string;
   like_count: number | null;
   comment_count: number | null;
+  share_count: number | null;
 };
 
 function toFeedPost(
@@ -45,6 +46,7 @@ function toFeedPost(
     replies: p.comment_count ?? 0,
     reposts: 0,
     likes: p.like_count ?? 0,
+    shares: p.share_count ?? 0,
     likedByMe: likedSet.has(p.id),
   };
 }
@@ -60,7 +62,7 @@ export async function fetchFeedPosts(): Promise<FeedPost[]> {
     const { data, error } = await supabase
       .from("posts")
       .select(
-        "id, author_id, author_name, author_tier, content, created_at, like_count, comment_count",
+        "id, author_id, author_name, author_tier, content, created_at, like_count, comment_count, share_count",
       )
       .order("created_at", { ascending: false })
       .limit(50);
@@ -97,7 +99,7 @@ export async function fetchPost(id: string): Promise<FeedPost | null> {
     const { data, error } = await supabase
       .from("posts")
       .select(
-        "id, author_id, author_name, author_tier, content, created_at, like_count, comment_count",
+        "id, author_id, author_name, author_tier, content, created_at, like_count, comment_count, share_count",
       )
       .eq("id", id)
       .single();

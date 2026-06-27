@@ -20,6 +20,7 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
   const router = useRouter();
   const [liked, setLiked] = useState(!!(post.likedByMe ?? post.liked));
   const [likes, setLikes] = useState(post.likes);
+  const [shares, setShares] = useState(post.shares ?? 0);
   const [busy, setBusy] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
@@ -65,9 +66,11 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
       ? `${window.location.origin}/post/${post.id}`
       : window.location.origin;
     const data = { title: "slyde", text: post.text, url };
+    let shared = false;
     if (navigator.share) {
       try {
         await navigator.share(data);
+        shared = true;
       } catch {
         /* 사용자가 취소 */
       }
@@ -75,9 +78,16 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
       try {
         await navigator.clipboard.writeText(url);
         alert("링크가 복사됐어요");
+        shared = true;
       } catch {
         /* noop */
       }
+    }
+    if (!shared) return;
+    setShares((c) => c + 1); // 낙관적
+    if (post.real) {
+      const supabase = createClient();
+      await supabase.rpc("increment_share", { p_id: post.id });
     }
   }
 
@@ -199,9 +209,10 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
           <button
             onClick={handleShare}
             aria-label="공유"
-            className="ml-auto text-base active:scale-90"
+            className="ml-auto flex items-center gap-1 text-sm active:scale-90"
           >
-            📤
+            <span className="text-base">📤</span>
+            <span>{formatCount(shares)}</span>
           </button>
         </div>
       </div>

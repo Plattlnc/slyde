@@ -91,6 +91,7 @@ export type FeedPost = {
   replies: number;
   reposts: number;
   likes: number;
+  shares?: number;
   liked?: boolean;
   verified?: boolean; // 인증 라이더
   sponsored?: { sponsor: string; cta: string }; // 스폰서(광고) 글
