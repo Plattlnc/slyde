@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { fetchUserPosts } from "@/lib/follows";
 import LogoutButton from "@/components/logout-button";
 
 const tierBadge: Record<string, string> = {
@@ -8,13 +9,21 @@ const tierBadge: Record<string, string> = {
   개인회원: "bg-slate-100 text-slate-600",
 };
 
+const cellGradients = [
+  "from-slate-300 to-slate-400",
+  "from-indigo-300 to-indigo-500",
+  "from-rose-300 to-rose-500",
+  "from-emerald-300 to-emerald-500",
+  "from-amber-300 to-amber-500",
+  "from-violet-300 to-violet-500",
+];
+
 export default async function ProfilePage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 비로그인 → 로그인 유도
   if (!user) {
     return (
       <div className="flex min-h-full flex-col items-center justify-center gap-4 px-6 text-center">
@@ -43,81 +52,136 @@ export default async function ProfilePage() {
     );
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("name, tier, company, follower_count, following_count")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { count: postCount }, posts] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("name, tier, company, follower_count, following_count")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("author_id", user.id),
+    fetchUserPosts(user.id),
+  ]);
 
   const name = profile?.name ?? "라이더";
   const tier = profile?.tier ?? "개인회원";
   const company = profile?.company;
-  const followerCount = profile?.follower_count ?? 0;
-  const followingCount = profile?.following_count ?? 0;
+  const handle = "@" + (user.email?.split("@")[0] ?? "rider");
 
   return (
-    <div className="min-h-full bg-slate-50">
-      {/* 프로필 헤더 */}
-      <div className="pt-safe bg-gradient-to-b from-blue-600 to-blue-500 px-5 pb-6 text-white">
-        <div className="flex items-center gap-4 pt-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl">
-            🛵
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="truncate text-lg font-bold">{name} 님</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  tierBadge[tier] ?? "bg-white/20"
-                }`}
-              >
-                {tier}
-              </span>
-            </div>
-            {company && (
-              <p className="text-xs text-blue-100">{company}</p>
-            )}
-            <p className="mt-0.5 truncate text-xs text-blue-100">
-              {user.email}
-            </p>
-          </div>
+    <div className="min-h-full bg-white">
+      {/* 헤더: 아바타 + 이름 */}
+      <div className="flex items-center gap-4 px-4 pb-4 pt-6">
+        <div className="flex h-[74px] w-[74px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-4xl">
+          🛵
         </div>
-
-        {/* 팔로워/팔로잉 */}
-        <div className="mt-4 flex gap-6">
-          <Link href={`/u/${user.id}/followers`} className="text-center">
-            <span className="block text-base font-bold">{followerCount}</span>
-            <span className="text-xs text-blue-100">팔로워</span>
-          </Link>
-          <Link href={`/u/${user.id}/following`} className="text-center">
-            <span className="block text-base font-bold">{followingCount}</span>
-            <span className="text-xs text-blue-100">팔로잉</span>
-          </Link>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-lg font-extrabold text-slate-900">{name}</span>
+            <span className="text-base">⚡</span>
+          </div>
+          <p className="mt-0.5 text-[13px] text-slate-500">
+            {company ? `${company} · ` : ""}
+            {handle}
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tierBadge[tier]}`}
+            >
+              {tier}
+            </span>
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+              🛡️ 안전운행
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* 메뉴 */}
-      <div className="space-y-3 px-4 py-4">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          {[
-            { href: "/dashboard", emoji: "📊", label: "내 실적 (SLA)" },
-            { href: "/accident", emoji: "🚨", label: "사고접수 내역" },
-            { href: "/shop", emoji: "🛍️", label: "주문 내역" },
-          ].map((item, i) => (
+      {/* 통계 */}
+      <div className="flex border-y border-slate-100">
+        <div className="flex-1 border-r border-slate-100 py-3.5 text-center">
+          <div className="text-lg font-extrabold tabular-nums text-slate-900">
+            {postCount ?? 0}
+          </div>
+          <div className="text-[11.5px] text-slate-500">게시글</div>
+        </div>
+        <Link
+          href={`/u/${user.id}/followers`}
+          className="flex-1 border-r border-slate-100 py-3.5 text-center active:bg-slate-50"
+        >
+          <div className="text-lg font-extrabold tabular-nums text-slate-900">
+            {profile?.follower_count ?? 0}
+          </div>
+          <div className="text-[11.5px] text-slate-500">팔로워</div>
+        </Link>
+        <Link
+          href={`/u/${user.id}/following`}
+          className="flex-1 py-3.5 text-center active:bg-slate-50"
+        >
+          <div className="text-lg font-extrabold tabular-nums text-slate-900">
+            {profile?.following_count ?? 0}
+          </div>
+          <div className="text-[11.5px] text-slate-500">팔로잉</div>
+        </Link>
+      </div>
+
+      {/* 액션 */}
+      <div className="flex gap-2 px-4 py-3.5">
+        <Link
+          href="/dashboard"
+          className="flex-1 rounded-[10px] bg-blue-600 py-2.5 text-center text-sm font-bold text-white active:scale-[0.98]"
+        >
+          📊 내 실적 보기
+        </Link>
+        <Link
+          href={`/u/${user.id}`}
+          className="flex-1 rounded-[10px] border border-slate-200 bg-white py-2.5 text-center text-sm font-bold text-slate-700 active:scale-[0.98]"
+        >
+          공개 프로필
+        </Link>
+      </div>
+
+      {/* 내 게시글 그리드 */}
+      <div className="border-t-8 border-slate-50 px-4 pb-2 pt-3 text-[13px] font-bold text-slate-500">
+        📷 내 게시글
+      </div>
+      {posts.length === 0 ? (
+        <p className="px-4 py-10 text-center text-sm text-slate-400">
+          아직 작성한 글이 없어요
+        </p>
+      ) : (
+        <div className="grid grid-cols-3 gap-[3px]">
+          {posts.map((p, i) => (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3.5 text-sm text-slate-700 active:bg-slate-50 ${
-                i > 0 ? "border-t border-slate-100" : ""
-              }`}
+              key={p.id}
+              href={`/post/${p.id}`}
+              className="relative aspect-square"
             >
-              <span className="w-6 text-center text-lg">{item.emoji}</span>
-              {item.label}
-              <span className="ml-auto text-slate-300">›</span>
+              {p.images && p.images.length > 0 ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.images[0]}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div
+                  className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
+                    cellGradients[i % cellGradients.length]
+                  }`}
+                >
+                  <span className="line-clamp-3">{p.text || "🛵"}</span>
+                </div>
+              )}
             </Link>
           ))}
         </div>
+      )}
 
+      {/* 로그아웃 */}
+      <div className="px-4 py-5">
         <LogoutButton />
       </div>
     </div>
