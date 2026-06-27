@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Avatar from "@/components/avatar";
+import { MenuIcon } from "@/components/icons";
 import type { CurrentProfile } from "@/lib/profile";
 
 const menuSections = [
@@ -167,9 +168,9 @@ export default function MenuDrawer({
         onClick={() => setOpen(true)}
         aria-label="메뉴"
         aria-expanded={open}
-        className="text-slate-600 active:scale-90"
+        className="text-slate-700 active:scale-90"
       >
-        <span className="text-xl">☰</span>
+        <MenuIcon size={24} />
       </button>
       {mounted && createPortal(overlay, document.body)}
     </>

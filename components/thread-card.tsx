@@ -6,6 +6,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import PostImages from "@/components/post-images";
 import Avatar from "@/components/avatar";
+import {
+  HeartIcon,
+  CommentIcon,
+  RepostIcon,
+  ShareIcon,
+} from "@/components/icons";
 import type { FeedPost } from "@/lib/mock-data";
 
 function formatCount(n: number) {
@@ -191,46 +197,46 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
         )}
 
         {/* 액션 바 */}
-        <div className="mt-2 flex items-center gap-5 text-slate-500">
+        <div className="mt-2 flex items-center gap-6 text-slate-500">
           <button
             onClick={toggleLike}
             aria-pressed={liked}
             aria-label="좋아요"
-            className="flex items-center gap-1 text-sm active:scale-90"
+            className={`flex items-center gap-1.5 text-xs active:scale-90 ${
+              liked ? "text-rose-500" : ""
+            }`}
           >
-            <span className="text-base">{liked ? "❤️" : "🤍"}</span>
-            <span className={liked ? "text-rose-500" : ""}>
-              {formatCount(likes)}
-            </span>
+            <HeartIcon size={20} filled={liked} />
+            {likes > 0 && <span>{formatCount(likes)}</span>}
           </button>
 
           {post.real ? (
             <Link
               href={`/post/${post.id}`}
               aria-label="댓글"
-              className="flex items-center gap-1 text-sm active:scale-90"
+              className="flex items-center gap-1.5 text-xs active:scale-90"
             >
-              <span className="text-base">💬</span>
-              <span>{formatCount(post.replies)}</span>
+              <CommentIcon size={20} />
+              {post.replies > 0 && <span>{formatCount(post.replies)}</span>}
             </Link>
           ) : (
-            <span className="flex items-center gap-1 text-sm">
-              <span className="text-base">💬</span>
-              <span>{formatCount(post.replies)}</span>
+            <span className="flex items-center gap-1.5 text-xs">
+              <CommentIcon size={20} />
+              {post.replies > 0 && <span>{formatCount(post.replies)}</span>}
             </span>
           )}
 
-          <span className="flex items-center gap-1 text-sm">
-            <span className="text-base">🔁</span>
-            <span>{formatCount(post.reposts)}</span>
+          <span className="flex items-center gap-1.5 text-xs">
+            <RepostIcon size={20} />
+            {post.reposts > 0 && <span>{formatCount(post.reposts)}</span>}
           </span>
           <button
             onClick={handleShare}
             aria-label="공유"
-            className="ml-auto flex items-center gap-1 text-sm active:scale-90"
+            className="ml-auto flex items-center gap-1.5 text-xs active:scale-90"
           >
-            <span className="text-base">📤</span>
-            <span>{formatCount(shares)}</span>
+            <ShareIcon size={19} />
+            {shares > 0 && <span>{formatCount(shares)}</span>}
           </button>
         </div>
       </div>

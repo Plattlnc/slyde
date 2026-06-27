@@ -1,5 +1,6 @@
 import Link from "next/link";
 import MenuDrawer from "@/components/menu-drawer";
+import { SearchIcon, BellIcon } from "@/components/icons";
 import type { CurrentProfile } from "@/lib/profile";
 
 export default function FeedTopBar({
@@ -19,22 +20,18 @@ export default function FeedTopBar({
           </span>
           <span className="text-base">🛵</span>
         </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/search"
-            aria-label="검색"
-            className="text-slate-500 active:scale-90"
-          >
-            <span className="text-xl">🔍</span>
+        <div className="flex items-center gap-4 text-slate-700">
+          <Link href="/search" aria-label="검색" className="active:scale-90">
+            <SearchIcon size={22} />
           </Link>
           <Link
             href="/notifications"
             aria-label="알림"
-            className="relative text-slate-500 active:scale-90"
+            className="relative active:scale-90"
           >
-            <span className="text-xl">🔔</span>
+            <BellIcon size={22} />
             {unread > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
                 {unread > 9 ? "9+" : unread}
               </span>
             )}

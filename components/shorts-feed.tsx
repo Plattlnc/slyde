@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ShortCommentSheet from "@/components/short-comment-sheet";
+import { HeartIcon, CommentIcon, ShareIcon } from "@/components/icons";
 import type { Short } from "@/lib/shorts";
 
 type Me = { name: string; avatar: string; avatarUrl: string | null };
@@ -149,34 +150,32 @@ function ShortItem({
       </div>
 
       {/* 우측 액션 */}
-      <div className="absolute bottom-24 right-3 flex flex-col items-center gap-5 text-white">
+      <div className="absolute bottom-24 right-3 flex flex-col items-center gap-5 text-white drop-shadow-lg">
         <button
           onClick={toggleLike}
           aria-label="좋아요"
-          className="flex flex-col items-center active:scale-90"
+          className={`flex flex-col items-center gap-1 active:scale-90 ${
+            liked ? "text-rose-500" : "text-white"
+          }`}
         >
-          <span className="text-3xl drop-shadow">{liked ? "❤️" : "🤍"}</span>
-          <span className="text-xs font-semibold drop-shadow">
-            {formatCount(likes)}
-          </span>
+          <HeartIcon size={30} filled={liked} />
+          <span className="text-xs font-semibold">{formatCount(likes)}</span>
         </button>
         <button
           onClick={() => setShowComments(true)}
           aria-label="댓글"
-          className="flex flex-col items-center active:scale-90"
+          className="flex flex-col items-center gap-1 active:scale-90"
         >
-          <span className="text-3xl drop-shadow">💬</span>
-          <span className="text-xs font-semibold drop-shadow">
-            {formatCount(comments)}
-          </span>
+          <CommentIcon size={30} />
+          <span className="text-xs font-semibold">{formatCount(comments)}</span>
         </button>
         <button
           onClick={handleShare}
           aria-label="공유"
-          className="flex flex-col items-center active:scale-90"
+          className="flex flex-col items-center gap-1 active:scale-90"
         >
-          <span className="text-3xl drop-shadow">📤</span>
-          <span className="text-xs font-semibold drop-shadow">공유</span>
+          <ShareIcon size={28} />
+          <span className="text-xs font-semibold">공유</span>
         </button>
         {short.mine && (
           <button
@@ -184,7 +183,7 @@ function ShortItem({
             aria-label="삭제"
             className="flex flex-col items-center active:scale-90"
           >
-            <span className="text-2xl drop-shadow">🗑️</span>
+            <span className="text-2xl">🗑️</span>
           </button>
         )}
       </div>
