@@ -149,45 +149,43 @@ export default function CommentSection({
     );
   }
 
-  function ReplyInput({ parentId }: { parentId: string }) {
-    return (
-      <div className="mt-2 flex items-center gap-2">
-        <Avatar
-          url={me.avatarUrl}
-          emoji={me.avatar}
-          className="h-6 w-6"
-          emojiClass="text-xs"
-        />
-        <input
-          autoFocus
-          value={replyText}
-          onChange={(e) => setReplyText(e.target.value)}
-          placeholder="답글 추가…"
-          className="flex-1 border-b border-slate-200 pb-1 text-sm outline-none focus:border-slate-900"
-        />
-        <button
-          onClick={() => {
-            setReplyTo(null);
-            setReplyText("");
-          }}
-          className="text-xs text-slate-400"
-        >
-          취소
-        </button>
-        <button
-          onClick={async () => {
-            await add(replyText, parentId);
-            setReplyText("");
-            setReplyTo(null);
-          }}
-          disabled={!replyText.trim() || busy}
-          className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-40"
-        >
-          답글
-        </button>
-      </div>
-    );
-  }
+  const replyInput = (parentId: string) => (
+    <div className="mt-2 flex items-center gap-2">
+      <Avatar
+        url={me.avatarUrl}
+        emoji={me.avatar}
+        className="h-6 w-6"
+        emojiClass="text-xs"
+      />
+      <input
+        autoFocus
+        value={replyText}
+        onChange={(e) => setReplyText(e.target.value)}
+        placeholder="답글 추가…"
+        className="flex-1 border-b border-slate-200 pb-1 text-sm outline-none focus:border-slate-900"
+      />
+      <button
+        onClick={() => {
+          setReplyTo(null);
+          setReplyText("");
+        }}
+        className="text-xs text-slate-400"
+      >
+        취소
+      </button>
+      <button
+        onClick={async () => {
+          await add(replyText, parentId);
+          setReplyText("");
+          setReplyTo(null);
+        }}
+        disabled={!replyText.trim() || busy}
+        className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-40"
+      >
+        답글
+      </button>
+    </div>
+  );
 
   return (
     <>
@@ -240,7 +238,7 @@ export default function CommentSection({
                       {c.text}
                     </p>
                     <Actions c={c} />
-                    {replyTo === c.id && <ReplyInput parentId={c.id} />}
+                    {replyTo === c.id && replyInput(c.id)}
 
                     {/* 답글 토글 */}
                     {replies.length > 0 && (
