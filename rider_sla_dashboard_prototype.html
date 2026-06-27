@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라이더 개인 SLA 대시보드</title>
+</head>
+<body style="margin:0;">
+<div id="rider-sla-root"></div>
+
+<style>
+  #rider-sla-root {
+    --bg: #F6F4EF;
+    --surface: #FFFFFF;
+    --ink: #1C2420;
+    --ink-soft: #5B6660;
+    --ink-faint: #9B9588;
+    --line: #E4E0D6;
+    --route: #0B5FFF;
+    --good: #1E9E5A;
+    --warn: #E8590C;
+    --bad: #D9342B;
+
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 18px 16px 40px;
+    box-sizing: border-box;
+  }
+  #rider-sla-root * { box-sizing: border-box; }
+
+  .rs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .rs-id { display: flex; align-items: baseline; gap: 8px; }
+  .rs-name { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+  .rs-uid { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .rs-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 600; color: var(--good);
+    background: rgba(30,158,90,0.1); padding: 4px 9px; border-radius: 100px;
+  }
+  .rs-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--good); display: inline-block; }
+  .rs-phone { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-bottom: 14px; }
+
+  /* ---- Period tabs ---- */
+  .rs-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    background: #EFEBE2;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .rs-tab {
+    appearance: none; border: none; background: transparent;
+    font-family: inherit;
+    font-size: 13px; font-weight: 700; color: var(--ink-soft);
+    padding: 9px 0; border-radius: 9px; cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .rs-tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+  .rs-tab:focus-visible { outline: 2px solid var(--route); outline-offset: 1px; }
+
+  .rs-range {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- Gauge Card ---- */
+  .rs-gauge-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 20px 18px 14px; margin-bottom: 14px; position: relative; overflow: hidden;
+  }
+  .rs-gauge-label { font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-bottom: 2px; }
+  .rs-gauge-wrap { display: flex; justify-content: center; position: relative; }
+  .rs-gauge-svg { height: 160px; overflow: visible; }
+  .rs-gauge-num {
+    position: absolute; top: 56%; left: 50%; transform: translate(-50%, -40%); text-align: center;
+  }
+  .rs-gauge-num .v { font-size: 42px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; display: block; }
+  .rs-gauge-num .u { font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+  .rs-gauge-tag {
+    text-align: center; font-size: 12px; font-weight: 700; margin-top: -2px;
+    padding: 3px 10px; border-radius: 100px; display: inline-block;
+  }
+  .rs-gauge-foot { display: flex; justify-content: center; margin-top: 4px; }
+  .rs-gauge-formula { text-align: center; font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+
+  /* ---- Total banner ---- */
+  .rs-total-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 14px;
+  }
+  .rs-total-label { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
+  .rs-total-val { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .rs-total-val .unit { font-size: 13px; font-weight: 600; color: var(--ink-soft); margin-left: 2px; }
+  .rs-total-sub { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+  /* ---- Stat grid ---- */
+  .rs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .rs-stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 12px; }
+  .rs-stat-label { font-size: 12px; color: var(--ink-soft); font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .rs-stat-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .rs-stat-val { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 8px; }
+  .rs-stat-val .unit { font-size: 13px; font-weight: 600; color: var(--ink-soft); margin-left: 2px; }
+  .rs-stat-breakdown { display: flex; flex-wrap: wrap; gap: 5px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .rs-chip { font-size: 11px; color: var(--ink-soft); background: var(--bg); border-radius: 7px; padding: 3px 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rs-chip b { color: var(--ink); font-weight: 700; }
+
+  /* ---- Section card ---- */
+  .rs-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 16px 14px; margin-bottom: 14px; }
+  .rs-card-title { font-size: 14px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+  .rs-card-title span.hint { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
+
+  /* peak time cards */
+  .rs-peak-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rs-peak-card { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 11px; }
+  .rs-peak-name { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 6px; }
+  .rs-peak-val { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+  .rs-peak-val .unit { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-left: 2px; }
+  .rs-peak-share { font-size: 11px; color: var(--ink-faint); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .rs-peak-card.is-max { background: rgba(11,95,255,0.06); border-color: rgba(11,95,255,0.25); }
+  .rs-peak-card.is-max .rs-peak-val { color: var(--route); }
+
+  .rs-footnote { font-size: 11px; color: var(--ink-soft); text-align: center; line-height: 1.5; margin-top: 4px; }
+</style>
+
+<script>
+(function () {
+  // ============================================================
+  // 실제 연동 시: RIDER_DAILY 배열을 스크래핑한 "일별" 데이터로 교체.
+  // 하루 1개 레코드, 아래와 동일한 구조(metrics/peak)를 유지하면
+  // 오늘/주간/월간 합산 로직은 그대로 재사용 가능.
+  // ============================================================
+
+  const RIDER_PROFILE = {
+    name: "김태성",
+    uid: "o1075622667",
+    phone: "010-8504-2666",
+    status: "운행중"
+  };
+
+  // ---- 시드 기반 난수 (목데이터 재현용) ----
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // total을 weights 비율대로 정수 분배 (합이 total과 정확히 일치)
+  function splitWeighted(total, weights) {
+    const raw = weights.map(w => total * w);
+    const floors = raw.map(Math.floor);
+    let used = floors.reduce((a, b) => a + b, 0);
+    let remainder = total - used;
+    const order = raw
+      .map((r, i) => ({ i, frac: r - floors[i] }))
+      .sort((a, b) => b.frac - a.frac);
+    for (let k = 0; k < remainder; k++) floors[order[k % order.length].i]++;
+    return floors;
+  }
+
+  function fmtDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function makeDailyRecord(date, rnd, override) {
+    const completedTotal = override?.completed ?? (16 + Math.floor(rnd() * 20)); // 16~35
+    const rejectedTotal = override?.rejected ?? Math.floor(rnd() * 6); // 0~5
+    const dispatchTotal = override?.dispatchCancel ?? (rnd() < 0.6 ? 0 : 1 + Math.floor(rnd() * 2));
+    const deliveryTotal = override?.deliveryCancel ?? (rnd() < 0.85 ? 0 : 1);
+
+    const platformWeights = [0.90 + rnd() * 0.06, rnd() * 0.03, 0.0]; // 푸드/비마트/배민스토어
+    platformWeights[2] = Math.max(0, 1 - platformWeights[0] - platformWeights[1]);
+
+    function split(total) {
+      const [food, bmart, store] = splitWeighted(total, platformWeights);
+      return { food, bmart, store, total };
+    }
+
+    const peakWeights = [0.38 + rnd() * 0.12, 0.28 + rnd() * 0.1, 0.12 + rnd() * 0.08, rnd() * 0.04];
+    const wsum = peakWeights.reduce((a, b) => a + b, 0);
+    const normPeak = peakWeights.map(w => w / wsum);
+    const [p1, p2, p3, p4] = splitWeighted(completedTotal, normPeak);
+
+    return {
+      date: fmtDate(date),
+      metrics: {
+        completed: override?.completedSplit ?? split(completedTotal),
+        rejected: override?.rejectedSplit ?? split(rejectedTotal),
+        dispatchCancel: override?.dispatchSplit ?? split(dispatchTotal),
+        deliveryCancel: override?.deliverySplit ?? split(deliveryTotal)
+      },
+      peak: {
+        "아침점심피크": override?.peak?.["아침점심피크"] ?? p1,
+        "오후논피크": override?.peak?.["오후논피크"] ?? p2,
+        "저녁피크": override?.peak?.["저녁피크"] ?? p3,
+        "심야논피크": override?.peak?.["심야논피크"] ?? p4
+      }
+    };
+  }
+
+  function buildRiderDaily() {
+    const TODAY = new Date(2026, 5, 27); // 2026-06-27 (월: 0-index)
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(TODAY);
+      d.setDate(TODAY.getDate() - i);
+      const rnd = mulberry32(1000 + i);
+
+      if (i === 0) {
+        // 오늘 = 실제 캡처값 고정
+        days.push({
+          date: fmtDate(d),
+          metrics: {
+            completed: { food: 26, bmart: 0, store: 1, total: 27 },
+            rejected: { food: 3, bmart: 0, store: 0, total: 3 },
+            dispatchCancel: { food: 1, bmart: 0, store: 0, total: 1 },
+            deliveryCancel: { food: 0, bmart: 0, store: 0, total: 0 }
+          },
+          peak: { "아침점심피크": 14, "오후논피크": 11, "저녁피크": 2, "심야논피크": 0 }
+        });
+      } else {
+        days.push(makeDailyRecord(d, rnd));
+      }
+    }
+    return days; // 오래된 날 → 오늘 순
+  }
+
+  const RIDER_DAILY = buildRiderDaily();
+
+  function emptyMetric() { return { food: 0, bmart: 0, store: 0, total: 0 }; }
+
+  function aggregate(records) {
+    const sum = {
+      completed: emptyMetric(),
+      rejected: emptyMetric(),
+      dispatchCancel: emptyMetric(),
+      deliveryCancel: emptyMetric()
+    };
+    const peak = { "아침점심피크": 0, "오후논피크": 0, "저녁피크": 0, "심야논피크": 0 };
+
+    records.forEach(r => {
+      ['completed', 'rejected', 'dispatchCancel', 'deliveryCancel'].forEach(k => {
+        sum[k].food += r.metrics[k].food;
+        sum[k].bmart += r.metrics[k].bmart;
+        sum[k].store += r.metrics[k].store;
+        sum[k].total += r.metrics[k].total;
+      });
+      Object.keys(peak).forEach(p => { peak[p] += r.peak[p]; });
+    });
+
+    return { metrics: sum, peak };
+  }
+
+  function rangeForPeriod(period) {
+    const all = RIDER_DAILY;
+    if (period === 'today') return all.slice(-1);
+    if (period === 'week') return all.slice(-7);
+    return all.slice(-30); // month
+  }
+
+  function rangeLabel(period, records) {
+    if (period === 'today') return `${records[0].date} 기준`;
+    return `${records[0].date} ~ ${records[records.length - 1].date}`;
+  }
+
+  const PERIOD_META = {
+    today: { tab: '오늘', gauge: '오늘 수락률', total: '오늘 총 배달건수' },
+    week: { tab: '주간', gauge: '주간 수락률', total: '주간 총 배달건수' },
+    month: { tab: '월간', gauge: '월간 수락률', total: '월간 총 배달건수' }
+  };
+
+  // ---- 렌더링 ----
+  const root = document.getElementById('rider-sla-root');
+  let currentPeriod = 'today';
+
+  function gaugeColor(v) {
+    if (v >= 85) return { c: '#1E9E5A', bg: 'rgba(30,158,90,0.12)', text: '양호' };
+    if (v >= 70) return { c: '#E8590C', bg: 'rgba(232,89,12,0.12)', text: '주의' };
+    return { c: '#D9342B', bg: 'rgba(217,52,43,0.12)', text: '위험' };
+  }
+
+  function buildGauge(value) {
+    const size = 220, r = 92, cx = size / 2, cy = size / 2 + 6;
+    const startAngle = -225, sweep = 270;
+    const pct = Math.max(0, Math.min(100, value)) / 100;
+
+    function pt(angleDeg, radius) {
+      const rad = (angleDeg * Math.PI) / 180;
+      return [cx + radius * Math.cos(rad), cy + radius * Math.sin(rad)];
+    }
+    function arcPath(a0, a1, radius) {
+      const [x0, y0] = pt(a0, radius);
+      const [x1, y1] = pt(a1, radius);
+      const large = (a1 - a0) > 180 ? 1 : 0;
+      return `M ${x0} ${y0} A ${radius} ${radius} 0 ${large} 1 ${x1} ${y1}`;
+    }
+
+    const trackPath = arcPath(startAngle, startAngle + sweep, r);
+    const valuePath = arcPath(startAngle, startAngle + sweep * pct, r);
+    const tick70 = startAngle + sweep * 0.7;
+    const tick85 = startAngle + sweep * 0.85;
+    function tickLine(angle) {
+      const [ix, iy] = pt(angle, r - 9);
+      const [ox, oy] = pt(angle, r + 9);
+      return `<line x1="${ix}" y1="${iy}" x2="${ox}" y2="${oy}" stroke="#C8C2B2" stroke-width="2" />`;
+    }
+    const { c } = gaugeColor(value);
+
+    return `
+      <svg class="rs-gauge-svg" viewBox="0 0 ${size} ${size - 30}">
+        <path d="${trackPath}" fill="none" stroke="#EFEBE2" stroke-width="14" stroke-linecap="round" />
+        ${tickLine(tick70)}
+        ${tickLine(tick85)}
+        <path d="${valuePath}" fill="none" stroke="${c}" stroke-width="14" stroke-linecap="round" />
+      </svg>
+    `;
+  }
+
+  function breakdownChips(m) {
+    return `
+      <div class="rs-stat-breakdown">
+        <span class="rs-chip">푸드 <b>${m.food}</b></span>
+        <span class="rs-chip">비마트 <b>${m.bmart}</b></span>
+        <span class="rs-chip">배민스토어 <b>${m.store}</b></span>
+      </div>
+    `;
+  }
+
+  function buildPeakBlocks(peak) {
+    const entries = Object.entries(peak);
+    const sum = entries.reduce((s, [, v]) => s + v, 0) || 1;
+    const max = Math.max(...entries.map(([, v]) => v));
+    return `
+      <div class="rs-peak-grid">
+        ${entries.map(([name, val]) => {
+          const share = Math.round((val / sum) * 100);
+          const isMax = val === max && max > 0;
+          return `
+            <div class="rs-peak-card${isMax ? ' is-max' : ''}">
+              <div class="rs-peak-name">${name}</div>
+              <div class="rs-peak-val">${val}<span class="unit">건</span></div>
+              <div class="rs-peak-share">전체의 ${share}%</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function render(period) {
+    currentPeriod = period;
+    const records = rangeForPeriod(period);
+    const { metrics: m, peak } = aggregate(records);
+    const denom = m.completed.total + m.rejected.total + m.dispatchCancel.total + m.deliveryCancel.total;
+    const acceptanceRate = denom ? Math.round((m.completed.total / denom) * 1000) / 10 : 0;
+    const gaugeInfo = gaugeColor(acceptanceRate);
+    const meta = PERIOD_META[period];
+
+    root.innerHTML = `
+      <div class="rs-header">
+        <div class="rs-id">
+          <div class="rs-name">${RIDER_PROFILE.name}</div>
+          <div class="rs-uid">${RIDER_PROFILE.uid}</div>
+        </div>
+        <div class="rs-status">${RIDER_PROFILE.status}</div>
+      </div>
+      <div class="rs-phone">${RIDER_PROFILE.phone}</div>
+
+      <div class="rs-tabs" role="tablist">
+        ${Object.entries(PERIOD_META).map(([key, v]) => `
+          <button class="rs-tab${key === period ? ' active' : ''}" data-period="${key}" role="tab" aria-selected="${key === period}">${v.tab}</button>
+        `).join('')}
+      </div>
+      <div class="rs-range">${rangeLabel(period, records)}</div>
+
+      <div class="rs-total-banner">
+        <div>
+          <div class="rs-total-label">${meta.total}</div>
+          <div class="rs-total-sub">완료+거절+배차취소+배달취소 합계 ${denom}건 중</div>
+        </div>
+        <div class="rs-total-val">${m.completed.total}<span class="unit">건</span></div>
+      </div>
+
+      <div class="rs-gauge-card">
+        <div class="rs-gauge-label">${meta.gauge}</div>
+        <div class="rs-gauge-wrap">
+          ${buildGauge(acceptanceRate)}
+          <div class="rs-gauge-num">
+            <span class="v">${acceptanceRate}<span class="u">%</span></span>
+          </div>
+        </div>
+        <div class="rs-gauge-foot">
+          <span class="rs-gauge-tag" style="color:${gaugeInfo.c}; background:${gaugeInfo.bg};">${gaugeInfo.text}</span>
+        </div>
+        <div class="rs-gauge-formula">완료 ${m.completed.total} ÷ (완료+거절+배차취소+배달취소 ${denom})</div>
+      </div>
+
+      <div class="rs-grid">
+        <div class="rs-stat">
+          <div class="rs-stat-label"><span class="rs-stat-dot" style="background:#1E9E5A;"></span>완료</div>
+          <div class="rs-stat-val">${m.completed.total}<span class="unit">건</span></div>
+          ${breakdownChips(m.completed)}
+        </div>
+        <div class="rs-stat">
+          <div class="rs-stat-label"><span class="rs-stat-dot" style="background:#D9342B;"></span>거절</div>
+          <div class="rs-stat-val">${m.rejected.total}<span class="unit">건</span></div>
+          ${breakdownChips(m.rejected)}
+        </div>
+        <div class="rs-stat">
+          <div class="rs-stat-label"><span class="rs-stat-dot" style="background:#E8590C;"></span>배차취소</div>
+          <div class="rs-stat-val">${m.dispatchCancel.total}<span class="unit">건</span></div>
+          ${breakdownChips(m.dispatchCancel)}
+        </div>
+        <div class="rs-stat">
+          <div class="rs-stat-label"><span class="rs-stat-dot" style="background:#8C8472;"></span>배달취소(귀책)</div>
+          <div class="rs-stat-val">${m.deliveryCancel.total}<span class="unit">건</span></div>
+          ${breakdownChips(m.deliveryCancel)}
+        </div>
+      </div>
+
+      <div class="rs-card">
+        <div class="rs-card-title">피크시간대별 완료 현황</div>
+        ${buildPeakBlocks(peak)}
+      </div>
+
+      <div class="rs-footnote">표시된 값은 참고용이며, 정산 기준값은 별도 공지 사항을 따릅니다.</div>
+    `;
+
+    root.querySelectorAll('.rs-tab').forEach(btn => {
+      btn.addEventListener('click', () => render(btn.dataset.period));
+    });
+  }
+
+  render(currentPeriod);
+})();
+</script>
+
+</body>
+</html>
