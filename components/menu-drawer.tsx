@@ -6,18 +6,43 @@ import Link from "next/link";
 import Avatar from "@/components/avatar";
 import type { CurrentProfile } from "@/lib/profile";
 
-const menuItems = [
-  { href: "/dashboard", label: "내 실적", emoji: "📊" },
-  { href: "/rank", label: "라이더 랭킹", emoji: "🏆" },
-  { href: "/accident", label: "사고접수", emoji: "🚨" },
-  { href: "/centers", label: "내 주변 정비소", emoji: "🔧" },
-  { href: "/gas", label: "내 주변 주유소", emoji: "⛽" },
-  { href: "/food", label: "내 주변 맛집", emoji: "🍜" },
-  { href: "/partners", label: "우리지역 협력사", emoji: "🏢" },
-  { href: "/lease", label: "리스/렌탈", emoji: "🚗" },
-  { href: "/cars", label: "신차/중고차", emoji: "🚙" },
-  { href: "/news", label: "배달뉴스", emoji: "📰" },
-  { href: "/shop", label: "라이더 용품샵", emoji: "🛍️" },
+const menuSections = [
+  {
+    title: "내 활동",
+    items: [
+      { href: "/dashboard", label: "내 실적", emoji: "📊" },
+      { href: "/rank", label: "랭킹 순위", emoji: "🏆" },
+    ],
+  },
+  {
+    title: "사고 · 안전",
+    items: [
+      { href: "/accident", label: "사고접수", emoji: "🚨" },
+      { href: "/centers", label: "내 주변 정비소", emoji: "🔧" },
+    ],
+  },
+  {
+    title: "차량 · 장비",
+    items: [
+      { href: "/lease", label: "리스/렌탈", emoji: "🚗" },
+      { href: "/cars", label: "신차/중고차", emoji: "🚙" },
+      { href: "/shop", label: "라이더 용품샵", emoji: "🛍️" },
+    ],
+  },
+  {
+    title: "주변 정보",
+    items: [
+      { href: "/gas", label: "내 주변 주유소", emoji: "⛽" },
+      { href: "/food", label: "내 주변 맛집", emoji: "🍜" },
+    ],
+  },
+  {
+    title: "소식 · 커뮤니티",
+    items: [
+      { href: "/news", label: "배달뉴스", emoji: "📰" },
+      { href: "/partners", label: "우리지역 협력사", emoji: "🏢" },
+    ],
+  },
 ];
 
 export default function MenuDrawer({
@@ -86,18 +111,25 @@ export default function MenuDrawer({
             </div>
           </div>
 
-          {/* 메뉴 항목 */}
-          <nav className="flex-1 overflow-y-auto py-2">
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={close}
-                className="flex items-center gap-3 px-5 py-3.5 text-[15px] font-medium text-slate-700 transition active:bg-slate-50"
-              >
-                <span className="w-7 text-center text-xl">{item.emoji}</span>
-                {item.label}
-              </Link>
+          {/* 메뉴 항목 (섹션별) */}
+          <nav className="flex-1 overflow-y-auto py-1">
+            {menuSections.map((section) => (
+              <div key={section.title} className="py-1">
+                <p className="px-5 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                  {section.title}
+                </p>
+                {section.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={close}
+                    className="flex items-center gap-3 px-5 py-3 text-[15px] font-medium text-slate-700 transition active:bg-slate-50"
+                  >
+                    <span className="w-7 text-center text-xl">{item.emoji}</span>
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             ))}
           </nav>
 
