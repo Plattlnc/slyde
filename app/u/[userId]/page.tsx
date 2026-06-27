@@ -1,10 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ThreadCard from "@/components/thread-card";
 import FollowButton from "@/components/follow-button";
 import Avatar from "@/components/avatar";
 import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
 import { fetchPublicProfile, fetchUserPosts } from "@/lib/follows";
+import { fetchUserShorts } from "@/lib/shorts";
+
+const cellGradients = [
+  "from-slate-300 to-slate-400",
+  "from-indigo-300 to-indigo-500",
+  "from-rose-300 to-rose-500",
+  "from-emerald-300 to-emerald-500",
+  "from-amber-300 to-amber-500",
+  "from-violet-300 to-violet-500",
+];
 
 export default async function UserProfilePage({
   params,
@@ -14,7 +23,27 @@ export default async function UserProfilePage({
   const { userId } = await params;
   const profile = await fetchPublicProfile(userId);
   if (!profile) notFound();
-  const posts = await fetchUserPosts(userId);
+  const [posts, shorts] = await Promise.all([
+    fetchUserPosts(userId),
+    fetchUserShorts(userId),
+  ]);
+
+  const cells = [
+    ...posts.map((p) => ({
+      key: p.id,
+      href: `/post/${p.id}`,
+      video: p.videoUrl ?? null,
+      image: p.images?.[0] ?? null,
+      text: p.text,
+    })),
+    ...shorts.map((s) => ({
+      key: "s" + s.id,
+      href: "/shorts",
+      video: s.mediaType === "video" ? s.mediaUrl : null,
+      image: s.mediaType === "image" ? s.mediaUrl : null,
+      text: s.caption ?? "",
+    })),
+  ];
 
   return (
     <div className="min-h-full bg-slate-50">
@@ -115,16 +144,46 @@ export default async function UserProfilePage({
         </div>
       </div>
 
-      {/* 작성한 글 */}
-      <p className="px-4 pb-1 pt-4 text-xs font-bold text-slate-500">게시글</p>
-      {posts.length === 0 ? (
+      {/* 게시글 그리드 */}
+      <p className="px-4 pb-2 pt-4 text-xs font-bold text-slate-500">📷 게시글</p>
+      {cells.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-slate-400">
           아직 작성한 글이 없어요
         </p>
       ) : (
-        <div>
-          {posts.map((p) => (
-            <ThreadCard key={p.id} post={p} />
+        <div className="grid grid-cols-3 gap-[3px]">
+          {cells.map((c, i) => (
+            <Link
+              key={c.key}
+              href={c.href}
+              className="relative aspect-square overflow-hidden"
+            >
+              {c.video ? (
+                <>
+                  <video
+                    src={`${c.video}#t=0.1`}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full bg-black object-cover"
+                  />
+                  <span className="absolute right-1.5 top-1.5 text-sm text-white drop-shadow">
+                    ▶
+                  </span>
+                </>
+              ) : c.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={c.image} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div
+                  className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
+                    cellGradients[i % cellGradients.length]
+                  }`}
+                >
+                  <span className="line-clamp-3">{c.text || "🛵"}</span>
+                </div>
+              )}
+            </Link>
           ))}
         </div>
       )}
