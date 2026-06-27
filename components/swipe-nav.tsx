@@ -10,6 +10,11 @@ export default function SwipeNav() {
   const pathname = usePathname();
   const router = useRouter();
 
+  // 탭 미리 가져오기 (스와이프 반응 빠르게)
+  useEffect(() => {
+    TABS.forEach((t) => router.prefetch(t));
+  }, [router]);
+
   useEffect(() => {
     const idx = TABS.indexOf(pathname);
     if (idx === -1) return; // 메인 탭에서만 동작
