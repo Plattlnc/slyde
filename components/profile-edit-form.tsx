@@ -17,11 +17,9 @@ import {
 
 export default function ProfileEditForm({
   userId,
-  tier,
   initial,
 }: {
   userId: string;
-  tier: string;
   initial: {
     name: string;
     avatar: string;
@@ -239,7 +237,7 @@ export default function ProfileEditForm({
           })}
         </div>
         <p className="mt-2 text-[11px] text-slate-400">
-          최대 {BADGE_MAX}개까지 선택할 수 있어요. {tier} 뱃지는 기본 표시됩니다.
+          최대 {BADGE_MAX}개까지 선택할 수 있어요.
         </p>
       </div>
     </div>

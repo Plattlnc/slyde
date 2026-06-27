@@ -26,7 +26,6 @@ export default async function ChatPage({
     <ChatThread
       otherId={userId}
       otherName={partner.name}
-      otherTier={partner.tier}
       myId={user.id}
       initial={initial}
     />

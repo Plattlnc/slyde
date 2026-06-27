@@ -5,12 +5,6 @@ import LogoutButton from "@/components/logout-button";
 import Avatar from "@/components/avatar";
 import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
 
-const tierBadge: Record<string, string> = {
-  기업회원: "bg-indigo-100 text-indigo-700",
-  협력사회원: "bg-blue-100 text-blue-700",
-  개인회원: "bg-slate-100 text-slate-600",
-};
-
 const cellGradients = [
   "from-slate-300 to-slate-400",
   "from-indigo-300 to-indigo-500",
@@ -70,7 +64,6 @@ export default async function ProfilePage() {
   ]);
 
   const name = profile?.name ?? "라이더";
-  const tier = profile?.tier ?? "개인회원";
   const company = profile?.company;
   const handle = "@" + (user.email?.split("@")[0] ?? "rider");
   const avatarUrl = (profile?.avatar_url as string) ?? null;
@@ -99,11 +92,6 @@ export default async function ProfilePage() {
             {handle}
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
-            <span
-              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tierBadge[tier]}`}
-            >
-              {tier}
-            </span>
             {badges.map((k) =>
               BADGE_CATALOG[k] ? (
                 <span

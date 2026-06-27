@@ -8,13 +8,11 @@ import type { ChatMessage } from "@/lib/messages";
 export default function ChatThread({
   otherId,
   otherName,
-  otherTier,
   myId,
   initial,
 }: {
   otherId: string;
   otherName: string;
-  otherTier: string;
   myId: string;
   initial: ChatMessage[];
 }) {
@@ -118,10 +116,7 @@ export default function ChatThread({
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-base">
             🛵
           </div>
-          <div>
-            <p className="text-sm font-bold text-slate-900">{otherName}</p>
-            <p className="text-[11px] text-slate-400">{otherTier}</p>
-          </div>
+          <p className="text-sm font-bold text-slate-900">{otherName}</p>
         </div>
       </header>
 

@@ -55,7 +55,6 @@ export default function MenuDrawer({
   const close = () => setOpen(false);
 
   const name = profile?.name ?? "라이더";
-  const tier = profile?.tier ?? "개인회원";
   const company = profile?.company ?? null;
   const avatar = profile?.avatarEmoji ?? "🛵";
 
@@ -104,10 +103,7 @@ export default function MenuDrawer({
             />
             <div>
               <p className="text-base font-bold">{name} 님</p>
-              <p className="text-xs text-blue-100">
-                {tier}
-                {company ? ` · ${company}` : ""}
-              </p>
+              <p className="text-xs text-blue-100">{company || "slyde 라이더"}</p>
             </div>
           </div>
 

@@ -4,12 +4,6 @@ import ThreadCard from "@/components/thread-card";
 import CommentForm from "@/components/comment-form";
 import { fetchPost, fetchComments } from "@/lib/posts";
 
-const tierBadge: Record<string, string> = {
-  기업회원: "bg-indigo-100 text-indigo-700",
-  협력사회원: "bg-blue-100 text-blue-700",
-  개인회원: "bg-slate-100 text-slate-600",
-};
-
 export default async function PostPage({
   params,
 }: {
@@ -56,13 +50,6 @@ export default async function PostPage({
                   <div className="flex items-center gap-1.5 text-sm">
                     <span className="truncate font-semibold text-slate-900">
                       {c.author}
-                    </span>
-                    <span
-                      className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                        tierBadge[c.tier] ?? "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {c.tier}
                     </span>
                     <span className="ml-auto shrink-0 text-xs text-slate-400">
                       {c.time}

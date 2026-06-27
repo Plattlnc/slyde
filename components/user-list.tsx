@@ -2,12 +2,6 @@ import Link from "next/link";
 import FollowButton from "@/components/follow-button";
 import type { FollowUser } from "@/lib/follows";
 
-const tierBadge: Record<string, string> = {
-  기업회원: "bg-indigo-100 text-indigo-700",
-  협력사회원: "bg-blue-100 text-blue-700",
-  개인회원: "bg-slate-100 text-slate-600",
-};
-
 export default function UserList({
   users,
   myId,
@@ -33,13 +27,6 @@ export default function UserList({
             </div>
             <span className="truncate text-sm font-semibold text-slate-900">
               {u.name}
-            </span>
-            <span
-              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                tierBadge[u.tier] ?? "bg-slate-100 text-slate-600"
-              }`}
-            >
-              {u.tier}
             </span>
           </Link>
           {myId && u.id !== myId && (

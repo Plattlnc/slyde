@@ -7,12 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import PostImages from "@/components/post-images";
 import type { FeedPost } from "@/lib/mock-data";
 
-const tierBadge: Record<FeedPost["tier"], string> = {
-  기업회원: "bg-indigo-100 text-indigo-700",
-  협력사회원: "bg-blue-100 text-blue-700",
-  개인회원: "bg-slate-100 text-slate-600",
-};
-
 function formatCount(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n);
 }
@@ -116,11 +110,6 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
             </span>
           )}
           {post.verified && <span className="text-blue-500">✔️</span>}
-          <span
-            className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${tierBadge[post.tier]}`}
-          >
-            {post.tier}
-          </span>
           {post.sponsored ? (
             <span className="ml-auto shrink-0 text-[11px] font-medium text-slate-400">
               광고

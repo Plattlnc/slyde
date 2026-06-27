@@ -11,14 +11,13 @@ export default async function ProfileEditPage() {
 
   const { data: p } = await supabase
     .from("profiles")
-    .select("name, tier, avatar, avatar_url, name_emoji, bio, badges")
+    .select("name, avatar, avatar_url, name_emoji, bio, badges")
     .eq("id", user.id)
     .single();
 
   return (
     <ProfileEditForm
       userId={user.id}
-      tier={(p?.tier as string) ?? "개인회원"}
       initial={{
         name: (p?.name as string) ?? "",
         avatar: (p?.avatar as string) ?? "🛵",

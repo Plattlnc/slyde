@@ -6,12 +6,6 @@ import Avatar from "@/components/avatar";
 import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
 import { fetchPublicProfile, fetchUserPosts } from "@/lib/follows";
 
-const tierBadge: Record<string, string> = {
-  기업회원: "bg-indigo-100 text-indigo-700",
-  협력사회원: "bg-blue-100 text-blue-700",
-  개인회원: "bg-slate-100 text-slate-600",
-};
-
 export default async function UserProfilePage({
   params,
 }: {
@@ -53,13 +47,6 @@ export default async function UserProfilePage({
               {profile.nameEmoji && (
                 <span className="text-base">{profile.nameEmoji}</span>
               )}
-              <span
-                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  tierBadge[profile.tier] ?? "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {profile.tier}
-              </span>
             </div>
             {profile.company && (
               <p className="text-xs text-slate-400">{profile.company}</p>
