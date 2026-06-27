@@ -76,6 +76,18 @@ export default function CommentSection({
     }
   }
 
+  async function remove(id: string) {
+    if (!confirm("삭제할까요?")) return;
+    const supabase = createClient();
+    const { error } = await supabase.from("post_comments").delete().eq("id", id);
+    if (error) {
+      alert("삭제 실패: " + error.message);
+      return;
+    }
+    // 원댓글이면 답글(cascade)도 함께 제거
+    setComments((prev) => prev.filter((c) => c.id !== id && c.parentId !== id));
+  }
+
   async function toggleLike(id: string) {
     const c = comments.find((x) => x.id === id);
     if (!c) return;
@@ -125,6 +137,14 @@ export default function CommentSection({
         >
           답글
         </button>
+        {c.mine && (
+          <button
+            onClick={() => remove(c.id)}
+            className="text-xs text-slate-400 active:scale-90"
+          >
+            삭제
+          </button>
+        )}
       </div>
     );
   }
