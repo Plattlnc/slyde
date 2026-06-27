@@ -99,7 +99,7 @@ function ShortItem({
   return (
     <div
       ref={wrapRef}
-      className="relative h-full w-full shrink-0 snap-start snap-always bg-black"
+      className="relative h-full w-full shrink-0 snap-start snap-always overflow-hidden bg-black"
       style={{ scrollSnapStop: "always" }}
     >
       {/* 미디어 */}
