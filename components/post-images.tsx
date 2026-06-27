@@ -1,13 +1,23 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // 게시글 첨부 사진 그리드 + 라이트박스(좌우 스와이프로 넘기기)
 export default function PostImages({ images }: { images?: string[] }) {
   const [idx, setIdx] = useState<number | null>(null);
   const startX = useRef(0);
   const swiped = useRef(false);
+
+  // 라이트박스 열림 동안 탭 스와이프 잠금
+  useEffect(() => {
+    (window as unknown as { __slydeModalOpen?: boolean }).__slydeModalOpen =
+      idx !== null;
+    return () => {
+      (window as unknown as { __slydeModalOpen?: boolean }).__slydeModalOpen =
+        false;
+    };
+  }, [idx]);
 
   if (!images || images.length === 0) return null;
 

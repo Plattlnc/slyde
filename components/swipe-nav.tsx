@@ -36,8 +36,13 @@ export default function SwipeNav() {
       const dt = Date.now() - startT;
       // 빠르고, 가로 이동이 세로보다 확실히 큰 경우만
       if (dt < 600 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6) {
-        const menuOpen = (window as unknown as { __slydeMenuOpen?: boolean })
-          .__slydeMenuOpen;
+        const w = window as unknown as {
+          __slydeMenuOpen?: boolean;
+          __slydeModalOpen?: boolean;
+        };
+        // 라이트박스/시트 등 모달 열려있으면 탭 스와이프 무시
+        if (w.__slydeModalOpen) return;
+        const menuOpen = w.__slydeMenuOpen;
         // 메뉴 열려있으면: 왼쪽 스와이프로 닫기만, 탭 이동은 안 함
         if (menuOpen) {
           if (dx < 0) window.dispatchEvent(new Event("slyde:close-menu"));

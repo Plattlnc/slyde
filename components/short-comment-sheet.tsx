@@ -39,6 +39,15 @@ export default function ShortCommentSheet({
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<"top" | "new">("top");
 
+  // 시트 열림 동안 탭 스와이프 잠금
+  useEffect(() => {
+    (window as unknown as { __slydeModalOpen?: boolean }).__slydeModalOpen = open;
+    return () => {
+      (window as unknown as { __slydeModalOpen?: boolean }).__slydeModalOpen =
+        false;
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
