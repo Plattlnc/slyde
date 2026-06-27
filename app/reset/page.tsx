@@ -14,22 +14,58 @@ export default function ResetPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  // 메일 링크의 code → 세션 교환
+  // 메일 링크 처리: code(PKCE) / token_hash(verifyOtp) / 해시 세션 모두 대응
   useEffect(() => {
     const supabase = createClient();
-    const code = new URLSearchParams(window.location.search).get("code");
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    const tokenHash = url.searchParams.get("token_hash");
+    const type = url.searchParams.get("type");
+    let done = false;
+    const ok = () => {
+      if (!done) {
+        done = true;
+        setReady("ok");
+      }
+    };
+
+    // supabase-js가 해시(#access_token...)를 자동 감지하면 여기로 들어옴
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session) ok();
+    });
+
     (async () => {
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        setReady(error ? "invalid" : "ok");
-      } else {
-        // 이미 세션이 있으면(implicit) 진행 허용
+      try {
+        if (tokenHash && type) {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: "recovery",
+          });
+          if (!error) return ok();
+        }
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error) return ok();
+        }
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        setReady(session ? "ok" : "invalid");
+        if (session) return ok();
+        // 해시 자동감지 잠깐 대기
+        setTimeout(async () => {
+          if (done) return;
+          const {
+            data: { session: s },
+          } = await supabase.auth.getSession();
+          if (s) ok();
+          else setReady("invalid");
+        }, 1800);
+      } catch {
+        if (!done) setReady("invalid");
       }
     })();
+
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   async function submit(e: React.FormEvent) {
