@@ -50,7 +50,7 @@ export default function TabCarousel({
         const i = Math.round(el.scrollLeft / w);
         if (i !== idxRef.current && i >= 0 && i < TABS.length) {
           idxRef.current = i;
-          window.history.replaceState(null, "", TABS[i]);
+          // URL은 바꾸지 않음 (Next가 가로채 라우트 변경→리마운트→되돌아감 방지)
           window.dispatchEvent(new CustomEvent("slyde:tab", { detail: i }));
         }
       }, 100);
