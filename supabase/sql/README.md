@@ -20,6 +20,7 @@
 | 02 | `02_posts.sql` | SNS 피드 글 `posts` 테이블 + RLS + 작성자 자동 채움 |
 | 03 | `03_engagement.sql` | 좋아요·댓글 테이블 + RLS + 카운트 자동 집계 트리거 |
 | 04 | `04_share.sql` | 공유 횟수 `share_count` 컬럼 + 증가 함수 |
+| 05 | `05_shorts.sql` | 숏폼(사진/영상) 테이블 + Storage 버킷 + 좋아요 |
 
 ## 새 SQL이 필요할 때
 

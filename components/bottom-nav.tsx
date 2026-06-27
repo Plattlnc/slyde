@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { rider } from "@/lib/mock-data";
+import CreateMenu from "@/components/create-menu";
 
 type IconProps = { active?: boolean };
 
@@ -44,29 +45,6 @@ function ShortsIcon({ active }: IconProps) {
   );
 }
 
-function PlusIcon() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden>
-      <rect
-        x="3"
-        y="3"
-        width="18"
-        height="18"
-        rx="6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M12 8v8M8 12h8"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function MessageIcon({ active }: IconProps) {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden>
@@ -82,14 +60,14 @@ function MessageIcon({ active }: IconProps) {
 }
 
 const tabs = [
-  { href: "/", label: "홈", Icon: HomeIcon },
-  { href: "/shorts", label: "숏폼", Icon: ShortsIcon },
-  { href: "/compose", label: "만들기", Icon: PlusIcon },
-  { href: "/messages", label: "메시지", Icon: MessageIcon },
-  { href: "/profile", label: "프로필", Icon: null }, // 프로필은 아바타로
+  { href: "/", label: "홈", Icon: HomeIcon, create: false },
+  { href: "/shorts", label: "숏폼", Icon: ShortsIcon, create: false },
+  { href: "/create", label: "만들기", Icon: null, create: true }, // ＋ → 시트
+  { href: "/messages", label: "메시지", Icon: MessageIcon, create: false },
+  { href: "/profile", label: "프로필", Icon: null, create: false }, // 아바타로
 ];
 
-const HIDDEN_ON = ["/login", "/signup", "/compose"];
+const HIDDEN_ON = ["/login", "/signup", "/compose", "/shorts/new"];
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -101,6 +79,14 @@ export default function BottomNav() {
     <nav className="pb-safe z-10 shrink-0 border-t border-slate-200 bg-white">
       <ul className="flex">
         {tabs.map((tab) => {
+          // ＋ 만들기: 링크 대신 글/숏폼 선택 시트
+          if (tab.create) {
+            return (
+              <li key={tab.href} className="flex-1">
+                <CreateMenu />
+              </li>
+            );
+          }
           const active =
             tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
           return (
