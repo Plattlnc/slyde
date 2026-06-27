@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Avatar from "@/components/avatar";
@@ -59,6 +59,8 @@ export default function MenuDrawer({
   const company = profile?.company ?? null;
   const avatar = profile?.avatarEmoji ?? "🛵";
 
+  const drawerStartX = useRef(0);
+
   useEffect(() => setMounted(true), []);
 
   // 스와이프 등 외부에서 메뉴 열기/닫기 신호
@@ -111,6 +113,13 @@ export default function MenuDrawer({
         />
         {/* 서랍 */}
         <aside
+          onTouchStart={(e) => {
+            drawerStartX.current = e.touches[0].clientX;
+          }}
+          onTouchEnd={(e) => {
+            if (e.changedTouches[0].clientX - drawerStartX.current < -50)
+              close();
+          }}
           className={`pt-safe absolute left-0 top-0 flex h-full w-[80%] max-w-xs flex-col bg-white shadow-2xl transition-transform duration-200 ease-out ${
             open ? "translate-x-0" : "-translate-x-full"
           }`}

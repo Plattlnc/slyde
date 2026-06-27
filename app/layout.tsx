@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/bottom-nav";
-import SwipeNav from "@/components/swipe-nav";
+import SwipePager from "@/components/swipe-pager";
 import PageTransition from "@/components/page-transition";
 import { getCurrentProfile } from "@/lib/profile";
 
@@ -37,12 +37,13 @@ export default async function RootLayout({
         <div className="device relative mx-auto flex h-dvh w-full max-w-md flex-col overflow-hidden bg-slate-50 shadow-xl sm:h-[860px] sm:max-h-[92dvh] sm:rounded-[2.5rem] sm:shadow-2xl sm:ring-[10px] sm:ring-slate-900">
           {/* 스크롤 영역 */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
-            <PageTransition>{children}</PageTransition>
+            {/* 손가락 추적 드래그로 탭 전환 */}
+            <SwipePager>
+              <PageTransition>{children}</PageTransition>
+            </SwipePager>
           </main>
           {/* 하단 탭바 (앱 셸 하단 고정) */}
           <BottomNav profile={profile} />
-          {/* 좌우 스와이프로 탭 이동 */}
-          <SwipeNav />
         </div>
       </body>
     </html>
