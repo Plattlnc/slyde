@@ -60,6 +60,13 @@ export default function MenuDrawer({
 
   useEffect(() => setMounted(true), []);
 
+  // 스와이프 등 외부에서 메뉴 열기 신호
+  useEffect(() => {
+    const h = () => setOpen(true);
+    window.addEventListener("slyde:open-menu", h);
+    return () => window.removeEventListener("slyde:open-menu", h);
+  }, []);
+
   // 열렸을 때 뒤 배경 스크롤 잠금
   useEffect(() => {
     if (open) {

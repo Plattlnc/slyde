@@ -31,8 +31,14 @@ export default function SwipeNav() {
       const dt = Date.now() - startT;
       // 빠르고, 가로 이동이 세로보다 확실히 큰 경우만
       if (dt < 600 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6) {
-        if (dx < 0 && idx < TABS.length - 1) router.push(TABS[idx + 1]);
-        else if (dx > 0 && idx > 0) router.push(TABS[idx - 1]);
+        if (dx < 0 && idx < TABS.length - 1) {
+          router.push(TABS[idx + 1]); // 왼쪽 스와이프 → 다음 탭
+        } else if (dx > 0) {
+          if (idx > 0)
+            router.push(TABS[idx - 1]); // 오른쪽 스와이프 → 이전 탭
+          else if (pathname === "/")
+            window.dispatchEvent(new Event("slyde:open-menu")); // 홈에서 → 메뉴 열기
+        }
       }
     }
 
