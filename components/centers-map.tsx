@@ -3,98 +3,108 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  nearbyCenters,
-  fmtDistance,
-  fmtPhone,
-  DEFAULT_POS,
-  type Center,
-} from "@/lib/centers";
+import { fmtDistance, DEFAULT_POS, type KakaoPlace } from "@/lib/centers";
 
-let mapsPromise: Promise<void> | null = null;
-function loadGoogleMaps(key: string): Promise<void> {
-  if ((window as any).google?.maps) return Promise.resolve();
-  if (mapsPromise) return mapsPromise;
-  mapsPromise = new Promise((resolve, reject) => {
+let sdkPromise: Promise<any> | null = null;
+function loadKakaoSdk(jsKey: string): Promise<any> {
+  if ((window as any).kakao?.maps) return Promise.resolve((window as any).kakao);
+  if (sdkPromise) return sdkPromise;
+  sdkPromise = new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}`;
+    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${jsKey}&autoload=false`;
     s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("지도 로드 실패"));
+    s.onload = () =>
+      (window as any).kakao.maps.load(() => resolve((window as any).kakao));
+    s.onerror = () => reject(new Error("지도 SDK 로드 실패"));
     document.head.appendChild(s);
   });
-  return mapsPromise;
+  return sdkPromise;
 }
-
-type Status = "loading" | "ready" | "nokey" | "error";
 
 export default function CentersMap() {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<Status>("loading");
-  const [centers, setCenters] = useState<Center[]>([]);
+  const [places, setPlaces] = useState<KakaoPlace[]>([]);
+  const [listStatus, setListStatus] = useState<
+    "loading" | "ready" | "error" | "no_rest_key" | "empty"
+  >("loading");
+  const [mapStatus, setMapStatus] = useState<
+    "loading" | "ready" | "no_js_key" | "error"
+  >("loading");
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!key) {
-      setStatus("nokey");
-      return;
-    }
-
+    const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
     let cancelled = false;
 
-    function start(lat: number, lng: number) {
-      loadGoogleMaps(key as string)
-        .then(() => {
-          if (cancelled || !mapRef.current) return;
-          const google = (window as any).google;
-          const map = new google.maps.Map(mapRef.current, {
-            center: { lat, lng },
-            zoom: 15,
-            disableDefaultUI: true,
-            zoomControl: true,
-          });
-          // 내 위치
-          new google.maps.Marker({
-            position: { lat, lng },
-            map,
-            title: "내 위치",
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 8,
-              fillColor: "#2563eb",
-              fillOpacity: 1,
-              strokeColor: "#fff",
-              strokeWeight: 2,
-            },
-          });
-          const list = nearbyCenters(lat, lng);
-          list.forEach((c) => {
-            new google.maps.Marker({
-              position: { lat: c.lat, lng: c.lng },
-              map,
-              title: c.name,
-            });
-          });
-          setCenters(list);
-          setStatus("ready");
-        })
-        .catch(() => !cancelled && setStatus("error"));
+    async function run(lat: number, lng: number) {
+      // 1) 검색 (서버 라우트 → 카카오 REST)
+      try {
+        const res = await fetch(`/api/centers?x=${lng}&y=${lat}`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.error === "no_rest_key") {
+          setListStatus("no_rest_key");
+        } else if (!res.ok || !data.documents) {
+          setListStatus("error");
+        } else {
+          const docs: KakaoPlace[] = data.documents;
+          setPlaces(docs);
+          setListStatus(docs.length ? "ready" : "empty");
+          // 2) 지도
+          if (!jsKey) {
+            setMapStatus("no_js_key");
+          } else {
+            try {
+              const kakao = await loadKakaoSdk(jsKey);
+              if (cancelled || !mapRef.current) return;
+              const center = new kakao.maps.LatLng(lat, lng);
+              const map = new kakao.maps.Map(mapRef.current, {
+                center,
+                level: 5,
+              });
+              // 내 위치
+              new kakao.maps.Marker({
+                map,
+                position: center,
+                image: new kakao.maps.MarkerImage(
+                  "data:image/svg+xml;base64," +
+                    btoa(
+                      `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="7" fill="#2563eb" stroke="#fff" stroke-width="3"/></svg>`,
+                    ),
+                  new kakao.maps.Size(20, 20),
+                ),
+              });
+              // 정비소 마커
+              docs.forEach((p) => {
+                new kakao.maps.Marker({
+                  map,
+                  position: new kakao.maps.LatLng(Number(p.y), Number(p.x)),
+                  title: p.place_name,
+                });
+              });
+              setMapStatus("ready");
+            } catch {
+              setMapStatus("error");
+            }
+          }
+        }
+      } catch {
+        if (!cancelled) setListStatus("error");
+      }
     }
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => start(pos.coords.latitude, pos.coords.longitude),
+        (pos) => run(pos.coords.latitude, pos.coords.longitude),
         () => {
-          // 거부/실패 → 기본 위치(서울시청)
           setDenied(true);
-          start(DEFAULT_POS.lat, DEFAULT_POS.lng);
+          run(DEFAULT_POS.lat, DEFAULT_POS.lng);
         },
         { enableHighAccuracy: true, timeout: 8000 },
       );
     } else {
       setDenied(true);
-      start(DEFAULT_POS.lat, DEFAULT_POS.lng);
+      run(DEFAULT_POS.lat, DEFAULT_POS.lng);
     }
 
     return () => {
@@ -102,7 +112,7 @@ export default function CentersMap() {
     };
   }, []);
 
-  const nearest = centers[0];
+  const nearest = places[0];
 
   return (
     <div className="flex min-h-full flex-col bg-slate-50">
@@ -118,44 +128,39 @@ export default function CentersMap() {
         </div>
       </header>
 
-      {/* 지도 영역 */}
-      {status === "nokey" ? (
+      {/* 지도 */}
+      {mapStatus === "no_js_key" ? (
         <div className="m-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          지도 API 키가 설정되지 않았어요.
-          <br />
-          <span className="text-xs">
-            (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY 설정 필요)
+          지도 JS 키가 설정되지 않았어요.
+          <span className="block text-xs">
+            (NEXT_PUBLIC_KAKAO_JS_KEY 설정 + 도메인 등록 필요)
           </span>
-        </div>
-      ) : status === "error" ? (
-        <div className="m-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-          지도를 불러오지 못했어요. 키/네트워크를 확인해주세요.
         </div>
       ) : (
         <div className="relative h-64 w-full bg-slate-200">
           <div ref={mapRef} className="h-full w-full" />
-          {status === "loading" && (
+          {mapStatus === "loading" && (
             <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-500">
-              위치 확인 중…
+              지도 불러오는 중…
             </div>
           )}
         </div>
       )}
 
-      {denied && status === "ready" && (
+      {denied && (
         <p className="px-4 pt-2 text-[11px] text-slate-400">
-          * 위치 권한이 없어 기본 위치(서울시청) 기준으로 표시했어요.
+          * 위치 권한이 없어 서울시청 기준으로 검색했어요.
         </p>
       )}
 
-      {/* 긴급출동 */}
-      {nearest && (
+      {/* 긴급출동 (가장 가까운 곳) */}
+      {nearest && nearest.phone && (
         <div className="px-4 pt-3">
           <a
             href={`tel:${nearest.phone}`}
             className="flex items-center justify-center gap-2 rounded-2xl bg-rose-600 py-3.5 text-sm font-bold text-white active:scale-[0.98]"
           >
-            🆘 긴급출동 — 가장 가까운 센터 연결 ({fmtDistance(nearest.distanceM)})
+            🆘 긴급출동 — 가장 가까운 곳 연결 ({fmtDistance(nearest.distance)})
           </a>
         </div>
       )}
@@ -164,34 +169,59 @@ export default function CentersMap() {
       <p className="px-4 pb-1 pt-4 text-xs font-bold text-slate-500">
         거리순 정비소
       </p>
+
+      {listStatus === "no_rest_key" && (
+        <p className="px-4 py-6 text-center text-sm text-amber-700">
+          검색 REST 키가 설정되지 않았어요 (KAKAO_REST_API_KEY)
+        </p>
+      )}
+      {listStatus === "error" && (
+        <p className="px-4 py-6 text-center text-sm text-rose-600">
+          검색에 실패했어요. 키/네트워크를 확인해주세요.
+        </p>
+      )}
+      {listStatus === "loading" && (
+        <p className="px-4 py-6 text-center text-sm text-slate-400">
+          검색 중…
+        </p>
+      )}
+      {listStatus === "empty" && (
+        <p className="px-4 py-6 text-center text-sm text-slate-400">
+          주변 5km 내 정비소를 찾지 못했어요.
+        </p>
+      )}
+
       <div className="divide-y divide-slate-100">
-        {centers.map((c) => (
-          <div key={c.id} className="flex items-center gap-3 bg-white px-4 py-3">
+        {places.map((p) => (
+          <div key={p.id} className="flex items-center gap-3 bg-white px-4 py-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl">
-              {c.type === "협력센터" ? "🤝" : c.type === "정비소" ? "🔧" : "🏢"}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-900">
-                {c.name}
-              </p>
-              <p className="text-xs text-slate-500">
-                {c.type} · {fmtDistance(c.distanceM)} · {fmtPhone(c.phone)}
-              </p>
+              🔧
             </div>
             <a
-              href={`tel:${c.phone}`}
-              className="shrink-0 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
-            >
-              전화
-            </a>
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}`}
+              href={p.place_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 active:scale-95"
+              className="min-w-0 flex-1"
             >
-              길찾기
+              <p className="truncate text-sm font-semibold text-slate-900">
+                {p.place_name}
+              </p>
+              <p className="truncate text-xs text-slate-500">
+                {p.road_address_name || p.address_name}
+              </p>
+              <p className="text-[11px] text-slate-400">
+                {fmtDistance(p.distance)}
+                {p.phone ? ` · ${p.phone}` : ""}
+              </p>
             </a>
+            {p.phone && (
+              <a
+                href={`tel:${p.phone}`}
+                className="shrink-0 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
+              >
+                전화
+              </a>
+            )}
           </div>
         ))}
       </div>
