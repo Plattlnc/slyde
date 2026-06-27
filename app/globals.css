@@ -1,7 +1,6 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500&display=swap");
 
-/* slyde 워드마크 (둥글고 친근한 이탤릭) */
+/* slyde 워드마크 (둥글고 친근한 이탤릭) — 폰트는 layout의 <link>로 로드 */
 .wordmark {
   font-family: "Fredoka", system-ui, sans-serif;
   font-weight: 500;

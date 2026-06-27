@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Avatar from "@/components/avatar";
 import type { CurrentProfile } from "@/lib/profile";
 
@@ -109,29 +109,63 @@ const HIDDEN_ON = [
   "/notifications", // 알림
 ];
 
+// 캐러셀 패널 인덱스
+const CINDEX: Record<string, number> = {
+  "/": 0,
+  "/shorts": 1,
+  "/messages": 2,
+  "/profile": 3,
+};
+
 export default function BottomNav({
   profile,
 }: {
   profile?: CurrentProfile | null;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [activeIdx, setActiveIdx] = useState<number>(CINDEX[pathname] ?? -1);
 
-  // 로그인/회원가입에선 하단바 숨김
+  // 캐러셀 스냅 → 활성 탭 동기화
+  useEffect(() => {
+    const h = (e: Event) => setActiveIdx((e as CustomEvent<number>).detail);
+    window.addEventListener("slyde:tab", h);
+    return () => window.removeEventListener("slyde:tab", h);
+  }, []);
+  useEffect(() => {
+    setActiveIdx(CINDEX[pathname] ?? -1);
+  }, [pathname]);
+
+  // 로그인/회원가입 등에선 하단바 숨김
   if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
+
+  const inCarousel = CINDEX[pathname] !== undefined;
+
+  function handle(href: string) {
+    const ci = CINDEX[href];
+    if (ci !== undefined && inCarousel) {
+      // 이미 캐러셀 안 → 페이지 이동 없이 해당 패널로 스크롤
+      window.dispatchEvent(new CustomEvent("slyde:goto-tab", { detail: ci }));
+      setActiveIdx(ci);
+    } else {
+      router.push(href);
+    }
+  }
 
   return (
     <nav className="pb-safe z-10 shrink-0 border-t border-slate-200 bg-white">
       <ul className="flex">
         {tabs.map((tab) => {
+          const ci = CINDEX[tab.href];
           const active =
-            tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
+            ci !== undefined ? ci === activeIdx : pathname.startsWith(tab.href);
           return (
             <li key={tab.href} className="flex-1">
-              <Link
-                href={tab.href}
+              <button
+                onClick={() => handle(tab.href)}
                 aria-label={tab.label}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-14 items-center justify-center active:scale-90 ${
+                className={`flex h-14 w-full items-center justify-center active:scale-90 ${
                   active ? "text-slate-900" : "text-slate-400"
                 }`}
               >
@@ -146,7 +180,7 @@ export default function BottomNav({
                     emojiClass="text-base"
                   />
                 )}
-              </Link>
+              </button>
             </li>
           );
         })}
