@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ThreadCard from "@/components/thread-card";
-import CommentForm from "@/components/comment-form";
-import Avatar from "@/components/avatar";
+import CommentSection from "@/components/comment-section";
 import { fetchPost, fetchComments } from "@/lib/posts";
+import { getCurrentProfile } from "@/lib/profile";
 
 export default async function PostPage({
   params,
@@ -14,7 +14,10 @@ export default async function PostPage({
   const post = await fetchPost(id);
   if (!post) notFound();
 
-  const comments = await fetchComments(id);
+  const [comments, profile] = await Promise.all([
+    fetchComments(id),
+    getCurrentProfile(),
+  ]);
 
   return (
     <div className="flex min-h-full flex-col bg-slate-50">
@@ -31,46 +34,18 @@ export default async function PostPage({
       {/* 원글 */}
       <ThreadCard post={post} />
 
-      {/* 댓글 목록 */}
-      <div className="flex-1">
-        <p className="px-4 py-3 text-xs font-bold text-slate-500">
-          댓글 {comments.length}
-        </p>
-        {comments.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-400">
-            첫 댓글을 남겨보세요
-          </p>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {comments.map((c) => (
-              <div key={c.id} className="flex gap-3 bg-white px-4 py-3">
-                <Avatar
-                  url={c.avatarUrl}
-                  emoji={c.avatar}
-                  className="h-8 w-8"
-                  emojiClass="text-base"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-sm">
-                    <span className="truncate font-semibold text-slate-900">
-                      {c.author}
-                    </span>
-                    <span className="ml-auto shrink-0 text-xs text-slate-400">
-                      {c.time}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate-800">
-                    {c.text}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      {/* 댓글 (답글·좋아요) */}
+      <div className="flex flex-1 flex-col">
+        <CommentSection
+          postId={id}
+          initial={comments}
+          me={{
+            name: profile?.name ?? "라이더",
+            avatar: profile?.avatarEmoji ?? "🛵",
+            avatarUrl: profile?.avatarUrl ?? null,
+          }}
+        />
       </div>
-
-      {/* 댓글 입력 */}
-      <CommentForm postId={id} />
     </div>
   );
 }

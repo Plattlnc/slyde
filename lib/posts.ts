@@ -162,12 +162,14 @@ export async function fetchPost(id: string): Promise<FeedPost | null> {
 export type Comment = {
   id: string;
   author: string;
-  tier: FeedPost["tier"];
   avatar: string;
   avatarUrl: string | null;
   text: string;
   time: string;
   mine: boolean;
+  parentId: string | null;
+  likeCount: number;
+  likedByMe: boolean;
 };
 
 export async function fetchComments(postId: string): Promise<Comment[]> {
@@ -179,12 +181,14 @@ export async function fetchComments(postId: string): Promise<Comment[]> {
 
     const { data, error } = await supabase
       .from("post_comments")
-      .select("id, author_id, author_name, author_tier, content, created_at")
+      .select(
+        "id, author_id, author_name, content, created_at, parent_id, like_count",
+      )
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
     if (error || !data) return [];
 
-    // 댓글 작성자 현재 아바타
+    // 작성자 현재 아바타
     const authorIds = [...new Set(data.map((c) => c.author_id as string))];
     const avatarMap = new Map<string, AvatarInfo>();
     if (authorIds.length) {
@@ -200,17 +204,33 @@ export async function fetchComments(postId: string): Promise<Comment[]> {
       );
     }
 
+    // 내가 좋아요한 댓글
+    let likedSet = new Set<string>();
+    if (user && data.length) {
+      const { data: likes } = await supabase
+        .from("comment_likes")
+        .select("comment_id")
+        .eq("user_id", user.id)
+        .in(
+          "comment_id",
+          data.map((c) => c.id as string),
+        );
+      likedSet = new Set((likes ?? []).map((l) => l.comment_id as string));
+    }
+
     return data.map((c) => {
       const av = avatarMap.get(c.author_id as string);
       return {
         id: c.id as string,
         author: (c.author_name as string) ?? "라이더",
-        tier: ((c.author_tier as string) ?? "개인회원") as FeedPost["tier"],
         avatar: av?.avatar ?? "🛵",
         avatarUrl: av?.avatar_url ?? null,
         text: c.content as string,
         time: relativeTime(c.created_at as string),
         mine: user ? c.author_id === user.id : false,
+        parentId: (c.parent_id as string) ?? null,
+        likeCount: (c.like_count as number) ?? 0,
+        likedByMe: likedSet.has(c.id as string),
       };
     });
   } catch {
