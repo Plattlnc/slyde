@@ -9,7 +9,15 @@ function formatCount(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n);
 }
 
-function ShortItem({ short }: { short: Short }) {
+function ShortItem({
+  short,
+  muted,
+  onToggleMute,
+}: {
+  short: Short;
+  muted: boolean;
+  onToggleMute: () => void;
+}) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -17,7 +25,7 @@ function ShortItem({ short }: { short: Short }) {
   const [likes, setLikes] = useState(short.likes);
   const [deleted, setDeleted] = useState(false);
 
-  // 화면에 보이면 영상 재생, 벗어나면 정지
+  // 화면에 보이면 재생, 벗어나면 정지
   useEffect(() => {
     if (short.mediaType !== "video") return;
     const el = wrapRef.current;
@@ -94,7 +102,7 @@ function ShortItem({ short }: { short: Short }) {
           src={short.mediaUrl}
           className="h-full w-full object-contain"
           loop
-          muted
+          muted={muted}
           playsInline
           onClick={(e) => {
             const v = e.currentTarget;
@@ -111,6 +119,17 @@ function ShortItem({ short }: { short: Short }) {
         />
       )}
 
+      {/* 소리 켜기/끄기 (영상만) */}
+      {short.mediaType === "video" && (
+        <button
+          onClick={onToggleMute}
+          aria-label={muted ? "소리 켜기" : "소리 끄기"}
+          className="pt-safe absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-white active:scale-90"
+        >
+          {muted ? "🔇" : "🔊"}
+        </button>
+      )}
+
       {/* 하단 그라데이션 + 작성자/캡션 */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 pb-6 text-white">
         <p className="text-sm font-bold">@{short.author}</p>
@@ -122,7 +141,7 @@ function ShortItem({ short }: { short: Short }) {
         )}
       </div>
 
-      {/* 우측 액션 (틱톡 스타일) */}
+      {/* 우측 액션 */}
       <div className="absolute bottom-24 right-3 flex flex-col items-center gap-5 text-white">
         <button
           onClick={toggleLike}
@@ -157,10 +176,18 @@ function ShortItem({ short }: { short: Short }) {
 }
 
 export default function ShortsFeed({ shorts }: { shorts: Short[] }) {
+  // 자동재생 위해 기본 음소거, 사용자가 🔊 누르면 소리 켜짐 (전체 적용)
+  const [muted, setMuted] = useState(true);
+
   return (
     <div className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll overscroll-contain bg-black">
       {shorts.map((s) => (
-        <ShortItem key={s.id} short={s} />
+        <ShortItem
+          key={s.id}
+          short={s}
+          muted={muted}
+          onToggleMute={() => setMuted((m) => !m)}
+        />
       ))}
     </div>
   );

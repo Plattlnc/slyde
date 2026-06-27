@@ -230,8 +230,6 @@ export default function CameraCreate() {
               controls
               loop
               playsInline
-              autoPlay
-              muted
             />
           ) : (
             <img
