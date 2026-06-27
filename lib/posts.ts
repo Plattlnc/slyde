@@ -163,6 +163,8 @@ export type Comment = {
   id: string;
   author: string;
   tier: FeedPost["tier"];
+  avatar: string;
+  avatarUrl: string | null;
   text: string;
   time: string;
   mine: boolean;
@@ -182,14 +184,35 @@ export async function fetchComments(postId: string): Promise<Comment[]> {
       .order("created_at", { ascending: true });
     if (error || !data) return [];
 
-    return data.map((c) => ({
-      id: c.id as string,
-      author: (c.author_name as string) ?? "라이더",
-      tier: ((c.author_tier as string) ?? "개인회원") as FeedPost["tier"],
-      text: c.content as string,
-      time: relativeTime(c.created_at as string),
-      mine: user ? c.author_id === user.id : false,
-    }));
+    // 댓글 작성자 현재 아바타
+    const authorIds = [...new Set(data.map((c) => c.author_id as string))];
+    const avatarMap = new Map<string, AvatarInfo>();
+    if (authorIds.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, avatar, avatar_url")
+        .in("id", authorIds);
+      (profs ?? []).forEach((pr) =>
+        avatarMap.set(pr.id as string, {
+          avatar: (pr.avatar as string) ?? "🛵",
+          avatar_url: (pr.avatar_url as string) ?? null,
+        }),
+      );
+    }
+
+    return data.map((c) => {
+      const av = avatarMap.get(c.author_id as string);
+      return {
+        id: c.id as string,
+        author: (c.author_name as string) ?? "라이더",
+        tier: ((c.author_tier as string) ?? "개인회원") as FeedPost["tier"],
+        avatar: av?.avatar ?? "🛵",
+        avatarUrl: av?.avatar_url ?? null,
+        text: c.content as string,
+        time: relativeTime(c.created_at as string),
+        mine: user ? c.author_id === user.id : false,
+      };
+    });
   } catch {
     return [];
   }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ThreadCard from "@/components/thread-card";
 import CommentForm from "@/components/comment-form";
+import Avatar from "@/components/avatar";
 import { fetchPost, fetchComments } from "@/lib/posts";
 
 export default async function PostPage({
@@ -43,9 +44,12 @@ export default async function PostPage({
           <div className="divide-y divide-slate-100">
             {comments.map((c) => (
               <div key={c.id} className="flex gap-3 bg-white px-4 py-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-base">
-                  🛵
-                </div>
+                <Avatar
+                  url={c.avatarUrl}
+                  emoji={c.avatar}
+                  className="h-8 w-8"
+                  emojiClass="text-base"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 text-sm">
                     <span className="truncate font-semibold text-slate-900">
