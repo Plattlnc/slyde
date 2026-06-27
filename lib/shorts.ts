@@ -11,6 +11,7 @@ export type Short = {
   time: string;
   likes: number;
   likedByMe: boolean;
+  commentCount: number;
   mine: boolean;
 };
 
@@ -52,7 +53,7 @@ export async function fetchShorts(): Promise<Short[]> {
     const { data, error } = await supabase
       .from("shorts")
       .select(
-        "id, author_id, author_name, author_tier, media_url, media_type, caption, like_count, created_at",
+        "id, author_id, author_name, author_tier, media_url, media_type, caption, like_count, comment_count, created_at",
       )
       .order("created_at", { ascending: false })
       .limit(50);
@@ -81,6 +82,7 @@ export async function fetchShorts(): Promise<Short[]> {
       time: relativeTime(s.created_at as string),
       likes: (s.like_count as number) ?? 0,
       likedByMe: likedSet.has(s.id as string),
+      commentCount: (s.comment_count as number) ?? 0,
       mine: user ? s.author_id === user.id : false,
     }));
   } catch {

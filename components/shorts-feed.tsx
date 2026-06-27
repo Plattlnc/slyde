@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import ShortCommentSheet from "@/components/short-comment-sheet";
 import type { Short } from "@/lib/shorts";
+
+type Me = { name: string; avatar: string; avatarUrl: string | null };
 
 function formatCount(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1) + "천" : String(n);
@@ -13,16 +16,20 @@ function ShortItem({
   short,
   muted,
   onToggleMute,
+  me,
 }: {
   short: Short;
   muted: boolean;
   onToggleMute: () => void;
+  me: Me;
 }) {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [liked, setLiked] = useState(short.likedByMe);
   const [likes, setLikes] = useState(short.likes);
+  const [comments, setComments] = useState(short.commentCount);
+  const [showComments, setShowComments] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
   // 화면에 보이면 재생, 벗어나면 정지
@@ -154,6 +161,16 @@ function ShortItem({
           </span>
         </button>
         <button
+          onClick={() => setShowComments(true)}
+          aria-label="댓글"
+          className="flex flex-col items-center active:scale-90"
+        >
+          <span className="text-3xl drop-shadow">💬</span>
+          <span className="text-xs font-semibold drop-shadow">
+            {formatCount(comments)}
+          </span>
+        </button>
+        <button
           onClick={handleShare}
           aria-label="공유"
           className="flex flex-col items-center active:scale-90"
@@ -171,11 +188,26 @@ function ShortItem({
           </button>
         )}
       </div>
+
+      {/* 댓글 시트 */}
+      <ShortCommentSheet
+        shortId={short.id}
+        open={showComments}
+        onClose={() => setShowComments(false)}
+        me={me}
+        onAdded={() => setComments((c) => c + 1)}
+      />
     </div>
   );
 }
 
-export default function ShortsFeed({ shorts }: { shorts: Short[] }) {
+export default function ShortsFeed({
+  shorts,
+  me,
+}: {
+  shorts: Short[];
+  me: Me;
+}) {
   // 자동재생 위해 기본 음소거, 사용자가 🔊 누르면 소리 켜짐 (전체 적용)
   const [muted, setMuted] = useState(true);
 
@@ -187,6 +219,7 @@ export default function ShortsFeed({ shorts }: { shorts: Short[] }) {
           short={s}
           muted={muted}
           onToggleMute={() => setMuted((m) => !m)}
+          me={me}
         />
       ))}
     </div>

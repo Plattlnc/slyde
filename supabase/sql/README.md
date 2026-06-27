@@ -30,6 +30,7 @@
 | 12 | `12_notifications.sql` | 알림(팔로우/좋아요/댓글) 테이블 + 자동생성 트리거 |
 | 13 | `13_post_video.sql` | 게시글 동영상 첨부 `video_url` 컬럼 |
 | 14 | `14_comment_replies_likes.sql` | 댓글 답글(parent_id) + 댓글/답글 좋아요 |
+| 15 | `15_short_comments.sql` | 숏폼 댓글 테이블 + 카운트 |
 
 ## 새 SQL이 필요할 때
 

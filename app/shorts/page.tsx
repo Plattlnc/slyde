@@ -1,9 +1,18 @@
 import Link from "next/link";
 import ShortsFeed from "@/components/shorts-feed";
 import { fetchShorts } from "@/lib/shorts";
+import { getCurrentProfile } from "@/lib/profile";
 
 export default async function ShortsPage() {
-  const shorts = await fetchShorts();
+  const [shorts, profile] = await Promise.all([
+    fetchShorts(),
+    getCurrentProfile(),
+  ]);
+  const me = {
+    name: profile?.name ?? "라이더",
+    avatar: profile?.avatarEmoji ?? "🛵",
+    avatarUrl: profile?.avatarUrl ?? null,
+  };
 
   if (shorts.length === 0) {
     return (
@@ -25,5 +34,5 @@ export default async function ShortsPage() {
     );
   }
 
-  return <ShortsFeed shorts={shorts} />;
+  return <ShortsFeed shorts={shorts} me={me} />;
 }
