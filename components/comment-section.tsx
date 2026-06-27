@@ -116,7 +116,6 @@ export default function CommentSection({
             <span className="text-xs">{c.likeCount}</span>
           )}
         </button>
-        <span className="text-base opacity-70">👎</span>
         <button
           onClick={() => {
             setReplyTo(c.parentId ?? c.id);
