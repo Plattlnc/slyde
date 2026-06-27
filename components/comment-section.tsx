@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Avatar from "@/components/avatar";
+import { HeartIcon } from "@/components/icons";
 import type { Comment } from "@/lib/posts";
 
 export default function CommentSection({
@@ -119,14 +120,12 @@ export default function CommentSection({
       <div className="mt-1 flex items-center gap-4 text-slate-500">
         <button
           onClick={() => toggleLike(c.id)}
-          className="flex items-center gap-1 active:scale-90"
+          className={`flex items-center gap-1 active:scale-90 ${
+            c.likedByMe ? "text-rose-500" : ""
+          }`}
         >
-          <span className={`text-base ${c.likedByMe ? "" : "opacity-70"}`}>
-            {c.likedByMe ? "👍" : "👍🏻"}
-          </span>
-          {c.likeCount > 0 && (
-            <span className="text-xs">{c.likeCount}</span>
-          )}
+          <HeartIcon size={15} filled={c.likedByMe} />
+          {c.likeCount > 0 && <span className="text-xs">{c.likeCount}</span>}
         </button>
         <button
           onClick={() => {
