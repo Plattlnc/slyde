@@ -80,3 +80,107 @@ export function MenuIcon(p: P) {
     </Svg>
   );
 }
+
+/* 메뉴 항목 아이콘 */
+export function ChartIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M4 20h16" />
+      <path d="M7 20v-5" />
+      <path d="M12 20V8" />
+      <path d="M17 20v-9" />
+    </Svg>
+  );
+}
+export function TrophyIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M7 4h10v4a5 5 0 0 1-10 0V4z" />
+      <path d="M7 5H4v1a3 3 0 0 0 3 3" />
+      <path d="M17 5h3v1a3 3 0 0 1-3 3" />
+      <path d="M12 13v4" />
+      <path d="M8.5 21h7l-.5-3h-6l-.5 3z" />
+    </Svg>
+  );
+}
+export function AlertIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3 2 20h20L12 3z" />
+      <path d="M12 10v4" />
+      <path d="M12 17h.01" />
+    </Svg>
+  );
+}
+export function WrenchIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M15 6.5a3.5 3.5 0 0 0 4.4 4.4l-9.3 9.3a2.1 2.1 0 0 1-3-3l9.3-9.3a3.5 3.5 0 0 0-1.4-1.4z" />
+    </Svg>
+  );
+}
+export function KeyIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <circle cx="8" cy="8" r="4" />
+      <path d="M11 11l9 9" />
+      <path d="M17 17l2-2" />
+    </Svg>
+  );
+}
+export function CarIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M4 13l1.6-4.2A2 2 0 0 1 7.5 7.5h9a2 2 0 0 1 1.9 1.3L20 13" />
+      <path d="M3 13h18v4H3z" />
+      <circle cx="7.5" cy="17.5" r="1.5" />
+      <circle cx="16.5" cy="17.5" r="1.5" />
+    </Svg>
+  );
+}
+export function BagIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M6 8h12l-1 12H7L6 8z" />
+      <path d="M9 8a3 3 0 0 1 6 0" />
+    </Svg>
+  );
+}
+export function FuelIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M4 20V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v14" />
+      <path d="M3 20h12" />
+      <path d="M7 10h4" />
+      <path d="M14 9h2.5a1.5 1.5 0 0 1 1.5 1.5V16a1.5 1.5 0 0 0 3 0V8l-2.5-2.5" />
+    </Svg>
+  );
+}
+export function FoodIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M4 11h16" />
+      <path d="M6 11a6 6 0 0 1 12 0" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <path d="M12 4c-1.2.7-1.2 1.8 0 2.5" />
+    </Svg>
+  );
+}
+export function NewsIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M4 5h12v14a1 1 0 0 1-1 1H4z" />
+      <path d="M16 8h3a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2" />
+      <path d="M7 9h6M7 12h6M7 15h4" />
+    </Svg>
+  );
+}
+export function BuildingIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17" />
+      <path d="M3 21h18" />
+      <path d="M8.5 7h1M12 7h1M8.5 11h1M12 11h1M8.5 15h1M12 15h1" />
+    </Svg>
+  );
+}

@@ -4,44 +4,57 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Avatar from "@/components/avatar";
-import { MenuIcon } from "@/components/icons";
+import {
+  MenuIcon,
+  ChartIcon,
+  TrophyIcon,
+  AlertIcon,
+  WrenchIcon,
+  KeyIcon,
+  CarIcon,
+  BagIcon,
+  FuelIcon,
+  FoodIcon,
+  NewsIcon,
+  BuildingIcon,
+} from "@/components/icons";
 import type { CurrentProfile } from "@/lib/profile";
 
 const menuSections = [
   {
     title: "내 활동",
     items: [
-      { href: "/dashboard", label: "내 실적", emoji: "📊" },
-      { href: "/rank", label: "랭킹 순위", emoji: "🏆" },
+      { href: "/dashboard", label: "내 실적", Icon: ChartIcon },
+      { href: "/rank", label: "랭킹 순위", Icon: TrophyIcon },
     ],
   },
   {
     title: "사고 · 안전",
     items: [
-      { href: "/accident", label: "사고접수", emoji: "🚨" },
-      { href: "/centers", label: "내 주변 정비소", emoji: "🔧" },
+      { href: "/accident", label: "사고접수", Icon: AlertIcon },
+      { href: "/centers", label: "내 주변 정비소", Icon: WrenchIcon },
     ],
   },
   {
     title: "차량 · 장비",
     items: [
-      { href: "/lease", label: "리스/렌탈", emoji: "🚗" },
-      { href: "/cars", label: "신차/중고차", emoji: "🚙" },
-      { href: "/shop", label: "라이더 용품샵", emoji: "🛍️" },
+      { href: "/lease", label: "리스/렌탈", Icon: KeyIcon },
+      { href: "/cars", label: "신차/중고차", Icon: CarIcon },
+      { href: "/shop", label: "라이더 용품샵", Icon: BagIcon },
     ],
   },
   {
     title: "주변 정보",
     items: [
-      { href: "/gas", label: "내 주변 주유소", emoji: "⛽" },
-      { href: "/food", label: "내 주변 맛집", emoji: "🍜" },
+      { href: "/gas", label: "내 주변 주유소", Icon: FuelIcon },
+      { href: "/food", label: "내 주변 맛집", Icon: FoodIcon },
     ],
   },
   {
     title: "소식 · 커뮤니티",
     items: [
-      { href: "/news", label: "배달뉴스", emoji: "📰" },
-      { href: "/partners", label: "우리지역 협력사", emoji: "🏢" },
+      { href: "/news", label: "배달뉴스", Icon: NewsIcon },
+      { href: "/partners", label: "우리지역 협력사", Icon: BuildingIcon },
     ],
   },
 ];
@@ -152,7 +165,7 @@ export default function MenuDrawer({
                     onClick={close}
                     className="flex items-center gap-3 px-5 py-3 text-[15px] font-medium text-slate-700 transition active:bg-slate-50"
                   >
-                    <span className="w-7 text-center text-xl">{item.emoji}</span>
+                    <item.Icon size={20} className="text-slate-500" />
                     {item.label}
                   </Link>
                 ))}
