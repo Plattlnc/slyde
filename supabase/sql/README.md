@@ -1,0 +1,32 @@
+# Supabase SQL — 복붙용 모음
+
+여기 있는 `.sql` 파일들을 **Supabase 대시보드에서 직접 실행**하는 곳입니다.
+(로컬 anon 키로는 테이블 생성이 안 되므로, 이 SQL들은 대시보드에서 복붙해 돌립니다.)
+
+## 실행 방법
+
+1. https://supabase.com/dashboard → 프로젝트 선택
+2. 왼쪽 메뉴 **SQL Editor** → **New query**
+3. 아래 파일을 **번호순으로** 열어서, 파일 내용 전체를 복사 → 붙여넣기 → **Run** (▶)
+4. 초록색 "Success" 뜨면 완료
+
+> 모든 파일은 여러 번 실행해도 안전(idempotent)하게 작성돼 있어요.
+
+## 파일 목록 (순서대로)
+
+| # | 파일 | 내용 |
+|---|------|------|
+| 01 | `01_auth_profiles.sql` | 회원 등급(개인/협력사/기업) + `profiles` 테이블 + RLS + 가입 시 자동 프로필 |
+| 02 | `02_posts.sql` | SNS 피드 글 `posts` 테이블 + RLS + 작성자 자동 채움 |
+
+## 새 SQL이 필요할 때
+
+- 다음 번호(`02_...`, `03_...`)로 파일을 추가합니다.
+- 예: `02_posts.sql`(SNS 글), `03_rider_daily.sql`(SLA 데이터) 등.
+
+## 확인용 쿼리
+
+```sql
+-- 가입된 프로필 보기
+select id, name, tier, company, created_at from public.profiles order by created_at desc;
+```

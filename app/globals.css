@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-brand: #2563eb;
+  --color-brand-dark: #1d4ed8;
+  --font-sans: ui-sans-serif, system-ui, "Apple SD Gothic Neo", "Pretendard",
+    "Malgun Gothic", "맑은 고딕", sans-serif;
+}
+
+html {
+  font-family: var(--font-sans);
+  /* 모바일에서 가로 회전 시 폰트 자동 확대 방지 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  /* pull-to-refresh 바운스로 뒤 배경 노출 방지 */
+  overscroll-behavior-y: none;
+  /* 터치 시 파란 하이라이트 제거 (앱 느낌) */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 길게 눌렀을 때 이미지/이모지 선택·콜아웃 방지 */
+button,
+a {
+  -webkit-touch-callout: none;
+}
+
+/* 가로 스크롤 영역 스크롤바 숨김 (광고 배너 등) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 안전영역 유틸 (노치/홈 인디케이터) */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 1.25rem);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
