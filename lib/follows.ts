@@ -77,7 +77,7 @@ export async function fetchUserPosts(userId: string): Promise<FeedPost[]> {
     const { data } = await supabase
       .from("posts")
       .select(
-        "id, author_id, author_name, author_tier, content, created_at, like_count, comment_count, share_count, image_urls",
+        "id, author_id, author_name, author_tier, content, created_at, like_count, comment_count, share_count, image_urls, video_url",
       )
       .eq("author_id", userId)
       .order("created_at", { ascending: false })
@@ -95,6 +95,7 @@ export async function fetchUserPosts(userId: string): Promise<FeedPost[]> {
       time: relativeTime(p.created_at as string),
       text: (p.content as string) ?? "",
       images: (p.image_urls as string[]) ?? [],
+      videoUrl: (p.video_url as string) ?? null,
       replies: (p.comment_count as number) ?? 0,
       reposts: 0,
       likes: (p.like_count as number) ?? 0,

@@ -14,14 +14,24 @@ export default function ComposeForm() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [video, setVideo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canPost = (text.trim().length > 0 || files.length > 0) && !loading;
+  const canPost =
+    (text.trim().length > 0 || files.length > 0 || !!video) && !loading;
 
   function addFiles(list: FileList | null) {
     if (!list) return;
-    const imgs = Array.from(list).filter((f) => f.type.startsWith("image"));
+    const arr = Array.from(list);
+    const vid = arr.find((f) => f.type.startsWith("video"));
+    if (vid) {
+      setVideo(vid);
+      setFiles([]);
+      return;
+    }
+    const imgs = arr.filter((f) => f.type.startsWith("image"));
+    setVideo(null);
     setFiles((prev) => [...prev, ...imgs].slice(0, MAX_IMAGES));
   }
 
@@ -31,11 +41,16 @@ export default function ComposeForm() {
     setError(null);
     try {
       let image_urls: string[] = [];
-      if (files.length) image_urls = await uploadImages(files);
+      let video_url: string | null = null;
+      if (video) {
+        [video_url] = await uploadImages([video]);
+      } else if (files.length) {
+        image_urls = await uploadImages(files);
+      }
       const supabase = createClient();
       const { error } = await supabase
         .from("posts")
-        .insert({ content: text.trim() || null, image_urls });
+        .insert({ content: text.trim() || null, image_urls, video_url });
       if (error) throw error;
       router.push("/");
       router.refresh();
@@ -80,6 +95,25 @@ export default function ComposeForm() {
           />
         </div>
 
+        {/* 동영상 미리보기 */}
+        {video && (
+          <div className="relative mt-3 w-48">
+            <video
+              src={URL.createObjectURL(video)}
+              className="w-full rounded-lg bg-black"
+              muted
+              playsInline
+            />
+            <button
+              onClick={() => setVideo(null)}
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-xs text-white"
+              aria-label="삭제"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* 첨부 사진 미리보기 */}
         {files.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
@@ -114,16 +148,15 @@ export default function ComposeForm() {
         <div className="mt-auto flex items-center justify-between pt-3">
           <button
             onClick={() => fileRef.current?.click()}
-            disabled={files.length >= MAX_IMAGES}
-            aria-label="사진 첨부"
-            className="text-2xl text-slate-500 active:scale-90 disabled:opacity-30"
+            aria-label="사진·동영상 첨부"
+            className="text-2xl text-slate-500 active:scale-90"
           >
             🖼️
           </button>
           <input
             ref={fileRef}
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
             className="hidden"
             onChange={(e) => {

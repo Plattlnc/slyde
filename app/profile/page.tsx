@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { fetchUserPosts } from "@/lib/follows";
+import { fetchUserShorts } from "@/lib/shorts";
 import LogoutButton from "@/components/logout-button";
 import Avatar from "@/components/avatar";
 import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
@@ -48,20 +49,40 @@ export default async function ProfilePage() {
     );
   }
 
-  const [{ data: profile }, { count: postCount }, posts] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select(
-        "name, tier, company, avatar, avatar_url, name_emoji, bio, badges, follower_count, following_count",
-      )
-      .eq("id", user.id)
-      .single(),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("author_id", user.id),
-    fetchUserPosts(user.id),
-  ]);
+  const [{ data: profile }, { count: postCount }, posts, shorts] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select(
+          "name, tier, company, avatar, avatar_url, name_emoji, bio, badges, follower_count, following_count",
+        )
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("posts")
+        .select("id", { count: "exact", head: true })
+        .eq("author_id", user.id),
+      fetchUserPosts(user.id),
+      fetchUserShorts(user.id),
+    ]);
+
+  // 게시글 + 숏폼 통합 그리드 셀
+  const cells = [
+    ...posts.map((p) => ({
+      key: p.id,
+      href: `/post/${p.id}`,
+      video: p.videoUrl ?? null,
+      image: p.images?.[0] ?? null,
+      text: p.text,
+    })),
+    ...shorts.map((s) => ({
+      key: "s" + s.id,
+      href: "/shorts",
+      video: s.mediaType === "video" ? s.mediaUrl : null,
+      image: s.mediaType === "image" ? s.mediaUrl : null,
+      text: s.caption ?? "",
+    })),
+  ];
 
   const name = profile?.name ?? "라이더";
   const company = profile?.company;
@@ -159,32 +180,41 @@ export default async function ProfilePage() {
       <div className="border-t-8 border-slate-50 px-4 pb-2 pt-3 text-[13px] font-bold text-slate-500">
         📷 내 게시글
       </div>
-      {posts.length === 0 ? (
+      {cells.length === 0 ? (
         <p className="px-4 py-10 text-center text-sm text-slate-400">
           아직 작성한 글이 없어요
         </p>
       ) : (
         <div className="grid grid-cols-3 gap-[3px]">
-          {posts.map((p, i) => (
+          {cells.map((c, i) => (
             <Link
-              key={p.id}
-              href={`/post/${p.id}`}
-              className="relative aspect-square"
+              key={c.key}
+              href={c.href}
+              className="relative aspect-square overflow-hidden"
             >
-              {p.images && p.images.length > 0 ? (
+              {c.video ? (
+                <>
+                  <video
+                    src={c.video}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute right-1.5 top-1.5 text-sm text-white drop-shadow">
+                    ▶
+                  </span>
+                </>
+              ) : c.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.images[0]}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
+                <img src={c.image} alt="" className="h-full w-full object-cover" />
               ) : (
                 <div
                   className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
                     cellGradients[i % cellGradients.length]
                   }`}
                 >
-                  <span className="line-clamp-3">{p.text || "🛵"}</span>
+                  <span className="line-clamp-3">{c.text || "🛵"}</span>
                 </div>
               )}
             </Link>

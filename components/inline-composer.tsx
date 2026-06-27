@@ -10,7 +10,7 @@ import type { CurrentProfile } from "@/lib/profile";
 
 const MAX_IMAGES = 4;
 
-// 홈에서 바로 작성 → 게시 (페이지 이동 없이 인라인, 사진 첨부 가능)
+// 홈에서 바로 작성 → 게시 (사진/gif 여러 장 또는 동영상 1개)
 export default function InlineComposer({
   profile,
 }: {
@@ -20,16 +20,27 @@ export default function InlineComposer({
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [video, setVideo] = useState<File | null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const canPost = (text.trim().length > 0 || files.length > 0) && !busy;
+  const canPost =
+    (text.trim().length > 0 || files.length > 0 || !!video) && !busy;
 
   function addFiles(list: FileList | null) {
     if (!list) return;
-    const imgs = Array.from(list).filter((f) => f.type.startsWith("image"));
-    setFiles((prev) => [...prev, ...imgs].slice(0, MAX_IMAGES));
     setOpen(true);
+    const arr = Array.from(list);
+    const vid = arr.find((f) => f.type.startsWith("video"));
+    if (vid) {
+      // 동영상은 1개 (사진과 배타)
+      setVideo(vid);
+      setFiles([]);
+      return;
+    }
+    const imgs = arr.filter((f) => f.type.startsWith("image"));
+    setVideo(null);
+    setFiles((prev) => [...prev, ...imgs].slice(0, MAX_IMAGES));
   }
 
   async function post() {
@@ -37,14 +48,20 @@ export default function InlineComposer({
     setBusy(true);
     try {
       let image_urls: string[] = [];
-      if (files.length) image_urls = await uploadImages(files);
+      let video_url: string | null = null;
+      if (video) {
+        [video_url] = await uploadImages([video]);
+      } else if (files.length) {
+        image_urls = await uploadImages(files);
+      }
       const supabase = createClient();
       const { error } = await supabase
         .from("posts")
-        .insert({ content: text.trim() || null, image_urls });
+        .insert({ content: text.trim() || null, image_urls, video_url });
       if (error) throw error;
       setText("");
       setFiles([]);
+      setVideo(null);
       setOpen(false);
       router.refresh();
     } catch (e) {
@@ -75,7 +92,26 @@ export default function InlineComposer({
             }`}
           />
 
-          {/* 첨부 사진 미리보기 */}
+          {/* 동영상 미리보기 */}
+          {video && (
+            <div className="relative mb-2 w-40">
+              <video
+                src={URL.createObjectURL(video)}
+                className="w-full rounded-lg bg-black"
+                muted
+                playsInline
+              />
+              <button
+                onClick={() => setVideo(null)}
+                className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-xs text-white"
+                aria-label="삭제"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* 사진/gif 미리보기 */}
           {files.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-2">
               {files.map((f, i) => (
@@ -99,21 +135,19 @@ export default function InlineComposer({
             </div>
           )}
 
-          {(open || text || files.length > 0) && (
+          {(open || text || files.length > 0 || video) && (
             <div className="mt-1 flex items-center justify-between">
-              {/* 미디어 첨부 버튼 (Threads ＋) */}
               <button
                 onClick={() => fileRef.current?.click()}
-                disabled={files.length >= MAX_IMAGES}
-                aria-label="사진 첨부"
-                className="text-xl text-slate-500 active:scale-90 disabled:opacity-30"
+                aria-label="사진·동영상 첨부"
+                className="text-xl text-slate-500 active:scale-90"
               >
                 🖼️
               </button>
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 multiple
                 className="hidden"
                 onChange={(e) => {

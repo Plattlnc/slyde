@@ -28,6 +28,7 @@
 | 10 | `10_accident_reports.sql` | 사고접수 테이블 + RLS |
 | 11 | `11_profile_customization.sql` | 프로필 꾸미기(아바타/이름이모지/소개/뱃지) 컬럼 |
 | 12 | `12_notifications.sql` | 알림(팔로우/좋아요/댓글) 테이블 + 자동생성 트리거 |
+| 13 | `13_post_video.sql` | 게시글 동영상 첨부 `video_url` 컬럼 |
 
 ## 새 SQL이 필요할 때
 

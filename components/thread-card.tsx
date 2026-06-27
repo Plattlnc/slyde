@@ -148,8 +148,18 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
             </p>
           ))}
 
-        {/* 첨부 사진 */}
-        <PostImages images={post.images} />
+        {/* 첨부 동영상 */}
+        {post.videoUrl && (
+          <video
+            src={post.videoUrl}
+            controls
+            playsInline
+            className="mt-2.5 max-h-96 w-full rounded-2xl bg-black"
+          />
+        )}
+
+        {/* 첨부 사진/gif */}
+        {!post.videoUrl && <PostImages images={post.images} />}
 
         {/* 이미지 자리 (mock 데모) */}
         {post.image && (

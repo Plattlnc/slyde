@@ -14,6 +14,34 @@ export type Short = {
   mine: boolean;
 };
 
+export type UserShort = {
+  id: string;
+  mediaUrl: string;
+  mediaType: "image" | "video";
+  caption: string | null;
+};
+
+// 특정 유저의 숏폼 (프로필 그리드용)
+export async function fetchUserShorts(userId: string): Promise<UserShort[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("shorts")
+      .select("id, media_url, media_type, caption")
+      .eq("author_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    return (data ?? []).map((s) => ({
+      id: s.id as string,
+      mediaUrl: s.media_url as string,
+      mediaType: s.media_type as "image" | "video",
+      caption: (s.caption as string) ?? null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchShorts(): Promise<Short[]> {
   try {
     const supabase = await createClient();
