@@ -103,9 +103,18 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
       <div className="min-w-0 flex-1">
         {/* 헤더 줄 */}
         <div className="flex items-center gap-1.5 text-sm">
-          <span className="truncate font-semibold text-slate-900">
-            {post.author}
-          </span>
+          {post.real && post.authorId ? (
+            <Link
+              href={`/u/${post.authorId}`}
+              className="truncate font-semibold text-slate-900 active:opacity-70"
+            >
+              {post.author}
+            </Link>
+          ) : (
+            <span className="truncate font-semibold text-slate-900">
+              {post.author}
+            </span>
+          )}
           {post.verified && <span className="text-blue-500">✔️</span>}
           <span
             className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${tierBadge[post.tier]}`}

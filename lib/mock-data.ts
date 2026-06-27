@@ -98,6 +98,7 @@ export type FeedPost = {
   sponsored?: { sponsor: string; cta: string }; // 스폰서(광고) 글
   // ── 실제 DB 글에만 세팅 (mock 글은 undefined) ──
   real?: boolean; // DB에 존재하는 실제 글
+  authorId?: string; // 작성자 user id (프로필 링크)
   mine?: boolean; // 내가 쓴 글 (삭제 가능)
   likedByMe?: boolean; // 내가 좋아요 눌렀는지
 };

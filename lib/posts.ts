@@ -38,6 +38,7 @@ function toFeedPost(
   return {
     id: p.id,
     real: true,
+    authorId: p.author_id,
     mine: userId ? p.author_id === userId : false,
     author: p.author_name ?? "라이더",
     tier: (p.author_tier ?? "개인회원") as FeedPost["tier"],

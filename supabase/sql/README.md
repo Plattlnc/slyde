@@ -23,6 +23,7 @@
 | 05 | `05_shorts.sql` | 숏폼(사진/영상) 테이블 + Storage 버킷 + 좋아요 |
 | 06 | `06_post_images.sql` | 게시글 사진 첨부 `image_urls` + 사진만 올리기 허용 |
 | 07 | `07_messages.sql` | 1:1 메시지(DM) 테이블 + RLS + 실시간 + 프로필 공개조회 |
+| 08 | `08_follows.sql` | 팔로우/팔로워 테이블 + RLS + 카운트 집계 |
 
 ## 새 SQL이 필요할 때
 

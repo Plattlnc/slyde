@@ -45,13 +45,15 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, tier, company")
+    .select("name, tier, company, follower_count, following_count")
     .eq("id", user.id)
     .single();
 
   const name = profile?.name ?? "라이더";
   const tier = profile?.tier ?? "개인회원";
   const company = profile?.company;
+  const followerCount = profile?.follower_count ?? 0;
+  const followingCount = profile?.following_count ?? 0;
 
   return (
     <div className="min-h-full bg-slate-50">
@@ -79,6 +81,18 @@ export default async function ProfilePage() {
               {user.email}
             </p>
           </div>
+        </div>
+
+        {/* 팔로워/팔로잉 */}
+        <div className="mt-4 flex gap-6">
+          <Link href={`/u/${user.id}/followers`} className="text-center">
+            <span className="block text-base font-bold">{followerCount}</span>
+            <span className="text-xs text-blue-100">팔로워</span>
+          </Link>
+          <Link href={`/u/${user.id}/following`} className="text-center">
+            <span className="block text-base font-bold">{followingCount}</span>
+            <span className="text-xs text-blue-100">팔로잉</span>
+          </Link>
         </div>
       </div>
 

@@ -97,6 +97,7 @@ const HIDDEN_ON = [
   "/create",
   "/messages/", // 채팅방·새 메시지 (목록 /messages 는 유지)
   "/post/", // 글 상세
+  "/u/", // 유저 프로필·팔로워·팔로잉
 ];
 
 export default function BottomNav() {
