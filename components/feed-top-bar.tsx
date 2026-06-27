@@ -1,3 +1,4 @@
+import Link from "next/link";
 import MenuDrawer from "@/components/menu-drawer";
 import type { CurrentProfile } from "@/lib/profile";
 
@@ -16,13 +17,22 @@ export default function FeedTopBar({
           </span>
           <span className="text-base">🛵</span>
         </div>
-        <button
-          aria-label="알림"
-          className="relative text-slate-500 active:scale-90"
-        >
-          <span className="text-xl">🔔</span>
-          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-500" />
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/search"
+            aria-label="검색"
+            className="text-slate-500 active:scale-90"
+          >
+            <span className="text-xl">🔍</span>
+          </Link>
+          <button
+            aria-label="알림"
+            className="relative text-slate-500 active:scale-90"
+          >
+            <span className="text-xl">🔔</span>
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-500" />
+          </button>
+        </div>
       </div>
     </header>
   );

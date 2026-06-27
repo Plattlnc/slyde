@@ -101,6 +101,7 @@ const HIDDEN_ON = [
   "/shop/cart", // 장바구니(자체 주문 바)
   "/accident", // 사고접수 폼
   "/profile/edit", // 프로필 편집 폼
+  "/search", // 검색
 ];
 
 export default function BottomNav() {
