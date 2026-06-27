@@ -183,24 +183,6 @@ export const feedPosts: FeedPost[] = [
   },
 ];
 
-// ── 스토리 (인스타 스타일 상단 동그라미) ──────────────────────
-export type Story = {
-  id: string;
-  name: string;
-  avatarEmoji: string;
-  viewed?: boolean; // true면 회색 링(이미 봄)
-};
-
-export const stories: Story[] = [
-  { id: "s1", name: "라이더왕", avatarEmoji: "🏍️" },
-  { id: "s2", name: "강남터줏대감", avatarEmoji: "🛵" },
-  { id: "s3", name: "야간전문", avatarEmoji: "🌙" },
-  { id: "s4", name: "안전제일", avatarEmoji: "🦺" },
-  { id: "s5", name: "퀵의신", avatarEmoji: "⚡" },
-  { id: "s6", name: "초보기사", avatarEmoji: "🧑‍🦱", viewed: true },
-  { id: "s7", name: "베테랑", avatarEmoji: "🧔", viewed: true },
-];
-
 export type CommunityPost = {
   id: string;
   board: "일상/유머" | "질문/답변" | "사건/사고";

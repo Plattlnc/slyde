@@ -1,5 +1,4 @@
 import FeedTopBar from "@/components/feed-top-bar";
-import StoriesBar from "@/components/stories-bar";
 import InlineComposer from "@/components/inline-composer";
 import ThreadCard from "@/components/thread-card";
 import { feedPosts } from "@/lib/mock-data";
@@ -19,7 +18,6 @@ export default async function Home() {
   return (
     <div className="flex min-h-full flex-col bg-slate-100">
       <FeedTopBar profile={profile} unread={unread} />
-      <StoriesBar profile={profile} />
       <InlineComposer profile={profile} />
       <div className="flex flex-col">
         {posts.map((post) => (
