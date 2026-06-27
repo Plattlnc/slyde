@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import BottomNav from "@/components/bottom-nav";
+import SwipeNav from "@/components/swipe-nav";
 
 export const metadata: Metadata = {
   title: "slyde — 라이더 슈퍼앱",
@@ -37,6 +38,8 @@ export default function RootLayout({
           </main>
           {/* 하단 탭바 (앱 셸 하단 고정) */}
           <BottomNav />
+          {/* 좌우 스와이프로 탭 이동 */}
+          <SwipeNav />
         </div>
       </body>
     </html>

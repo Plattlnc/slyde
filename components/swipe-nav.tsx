@@ -1,0 +1,48 @@
+"use client";
+
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
+// 좌우 스와이프로 이동할 메인 탭 순서 (＋ 만들기는 제외)
+const TABS = ["/", "/shorts", "/messages", "/profile"];
+
+export default function SwipeNav() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    const idx = TABS.indexOf(pathname);
+    if (idx === -1) return; // 메인 탭에서만 동작
+
+    let startX = 0;
+    let startY = 0;
+    let startT = 0;
+
+    function onStart(e: TouchEvent) {
+      const t = e.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      startT = Date.now();
+    }
+    function onEnd(e: TouchEvent) {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      const dt = Date.now() - startT;
+      // 빠르고, 가로 이동이 세로보다 확실히 큰 경우만
+      if (dt < 600 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6) {
+        if (dx < 0 && idx < TABS.length - 1) router.push(TABS[idx + 1]);
+        else if (dx > 0 && idx > 0) router.push(TABS[idx - 1]);
+      }
+    }
+
+    window.addEventListener("touchstart", onStart, { passive: true });
+    window.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onStart);
+      window.removeEventListener("touchend", onEnd);
+    };
+  }, [pathname, router]);
+
+  return null;
+}
