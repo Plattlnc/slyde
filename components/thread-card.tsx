@@ -155,9 +155,10 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
         {/* 첨부 동영상 */}
         {post.videoUrl && (
           <video
-            src={post.videoUrl}
+            src={`${post.videoUrl}#t=0.1`}
             controls
             playsInline
+            preload="metadata"
             className="mt-2.5 max-h-96 w-full rounded-2xl bg-black"
           />
         )}
