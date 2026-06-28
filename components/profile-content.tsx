@@ -71,8 +71,8 @@ export default async function ProfileContent() {
     ...posts.map((p) => ({
       key: p.id,
       href: `/post/${p.id}`,
-      video: p.videoUrl ?? null,
-      image: p.images?.[0] ?? null,
+      video: p.videoUrl || null,
+      image: p.images?.find((u) => !!u) ?? null, // 대표(첫) 사진
       text: p.text,
     })),
     ...shorts.map((s) => ({
@@ -203,7 +203,12 @@ export default async function ProfileContent() {
               </>
             ) : c.image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={c.image} alt="" className="h-full w-full object-cover" />
+              <img
+                src={c.image}
+                alt=""
+                loading="lazy"
+                className="h-full w-full bg-slate-100 object-cover"
+              />
             ) : (
               <div
                 className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
