@@ -95,13 +95,24 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
 
   return (
     <article className="flex gap-3 border-b border-slate-200 bg-white px-4 py-3">
-      {/* 아바타 */}
-      <Avatar
-        url={post.avatarUrl}
-        emoji={post.avatarEmoji}
-        className="h-10 w-10"
-        emojiClass="text-xl"
-      />
+      {/* 아바타 (작성자 프로필로 이동) */}
+      {post.real && post.authorId ? (
+        <Link href={`/u/${post.authorId}`} className="shrink-0 active:opacity-70">
+          <Avatar
+            url={post.avatarUrl}
+            emoji={post.avatarEmoji}
+            className="h-10 w-10"
+            emojiClass="text-xl"
+          />
+        </Link>
+      ) : (
+        <Avatar
+          url={post.avatarUrl}
+          emoji={post.avatarEmoji}
+          className="h-10 w-10"
+          emojiClass="text-xl"
+        />
+      )}
 
       {/* 본문 영역 */}
       <div className="min-w-0 flex-1">
