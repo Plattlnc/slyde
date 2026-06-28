@@ -15,6 +15,8 @@ export default function TabCarousel({
   const elRef = useRef<HTMLDivElement | null>(null);
   const idxRef = useRef(initial);
   const startRef = useRef<number | null>(null);
+  const touchX = useRef(0);
+  const touchY = useRef(0);
   const panels = Children.toArray(children);
 
   // 시작 탭: 의도적 이동(slyde:goto)이 있으면 그 탭, 없으면 initial(=홈)
@@ -107,6 +109,25 @@ export default function TabCarousel({
   return (
     <div
       ref={setRef}
+      onTouchStart={(e) => {
+        touchX.current = e.touches[0].clientX;
+        touchY.current = e.touches[0].clientY;
+      }}
+      onTouchEnd={(e) => {
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        const dy = e.changedTouches[0].clientY - touchY.current;
+        const el = elRef.current;
+        // 홈(맨 왼쪽) 가장자리에서 오른쪽으로 끌면 → 햄버거 메뉴 열기
+        if (
+          el &&
+          idxRef.current === 0 &&
+          el.scrollLeft < 5 &&
+          dx > 60 &&
+          Math.abs(dx) > Math.abs(dy)
+        ) {
+          window.dispatchEvent(new Event("slyde:open-menu"));
+        }
+      }}
       className="no-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain"
     >
       {panels.map((p, i) => (
