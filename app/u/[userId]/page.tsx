@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import FollowButton from "@/components/follow-button";
 import Avatar from "@/components/avatar";
+import TabLink from "@/components/tab-link";
 import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
 import { fetchPublicProfile, fetchUserPosts } from "@/lib/follows";
 import { fetchUserShorts } from "@/lib/shorts";
@@ -119,12 +120,12 @@ export default async function UserProfilePage({
         {/* 액션 */}
         <div className="mt-4 flex gap-2">
           {profile.isMe ? (
-            <Link
-              href="/profile"
+            <TabLink
+              index={3}
               className="flex-1 rounded-full border border-slate-300 bg-white py-2 text-center text-sm font-semibold text-slate-700 active:scale-[0.98]"
             >
               내 프로필
-            </Link>
+            </TabLink>
           ) : (
             <>
               <div className="flex-1">
@@ -152,39 +153,43 @@ export default async function UserProfilePage({
         </p>
       ) : (
         <div className="grid grid-cols-3 gap-[3px]">
-          {cells.map((c, i) => (
-            <Link
-              key={c.key}
-              href={c.href}
-              className="relative aspect-square overflow-hidden"
-            >
-              {c.video ? (
-                <>
-                  <video
-                    src={`${c.video}#t=0.1`}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full bg-black object-cover"
-                  />
-                  <span className="absolute right-1.5 top-1.5 text-sm text-white drop-shadow">
-                    ▶
-                  </span>
-                </>
-              ) : c.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.image} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <div
-                  className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
-                    cellGradients[i % cellGradients.length]
-                  }`}
-                >
-                  <span className="line-clamp-3">{c.text || "🛵"}</span>
-                </div>
-              )}
-            </Link>
-          ))}
+          {cells.map((c, i) => {
+            const cls = "relative aspect-square overflow-hidden";
+            const inner = c.video ? (
+              <>
+                <video
+                  src={`${c.video}#t=0.1`}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full bg-black object-cover"
+                />
+                <span className="absolute right-1.5 top-1.5 text-sm text-white drop-shadow">
+                  ▶
+                </span>
+              </>
+            ) : c.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={c.image} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
+                  cellGradients[i % cellGradients.length]
+                }`}
+              >
+                <span className="line-clamp-3">{c.text || "🛵"}</span>
+              </div>
+            );
+            return c.href === "/shorts" ? (
+              <TabLink key={c.key} index={1} className={cls}>
+                {inner}
+              </TabLink>
+            ) : (
+              <Link key={c.key} href={c.href} className={cls}>
+                {inner}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

@@ -143,10 +143,18 @@ export default function BottomNav({
 
   function handle(href: string) {
     const ci = CINDEX[href];
-    if (ci !== undefined && inCarousel) {
-      // 이미 캐러셀 안 → 페이지 이동 없이 해당 패널로 스크롤
-      window.dispatchEvent(new CustomEvent("slyde:goto-tab", { detail: ci }));
-      setActiveIdx(ci);
+    if (ci !== undefined) {
+      if (inCarousel) {
+        // 이미 캐러셀 안 → 페이지 이동 없이 해당 패널로 스크롤
+        window.dispatchEvent(new CustomEvent("slyde:goto-tab", { detail: ci }));
+        setActiveIdx(ci);
+      } else {
+        // 서브페이지 → 홈으로 가서 해당 탭에 안착
+        try {
+          sessionStorage.setItem("slyde:goto", String(ci));
+        } catch {}
+        router.push("/");
+      }
     } else {
       router.push(href);
     }

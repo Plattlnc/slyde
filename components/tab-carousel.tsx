@@ -14,17 +14,37 @@ export default function TabCarousel({
 }) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const idxRef = useRef(initial);
+  const startRef = useRef<number | null>(null);
   const panels = Children.toArray(children);
 
-  // 마운트 시 초기 탭으로 즉시 정렬 (깜빡임 방지)
+  // 시작 탭: 의도적 이동(slyde:goto)이 있으면 그 탭, 없으면 initial(=홈)
+  function getStart() {
+    if (startRef.current === null) {
+      let s = initial;
+      try {
+        const g = sessionStorage.getItem("slyde:goto");
+        if (g !== null) {
+          const n = parseInt(g, 10);
+          if (!Number.isNaN(n)) s = n;
+          sessionStorage.removeItem("slyde:goto");
+        }
+      } catch {}
+      startRef.current = s;
+    }
+    return startRef.current;
+  }
+
+  // 마운트 시 시작 탭으로 즉시 정렬 (깜빡임 방지)
   const setRef = useCallback(
     (el: HTMLDivElement | null) => {
       elRef.current = el;
       if (el) {
-        el.scrollLeft = initial * el.clientWidth;
-        idxRef.current = initial;
+        const s = getStart();
+        el.scrollLeft = s * el.clientWidth;
+        idxRef.current = s;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [initial],
   );
 
@@ -32,8 +52,9 @@ export default function TabCarousel({
   useEffect(() => {
     const el = elRef.current;
     if (el && el.clientWidth) {
-      el.scrollLeft = initial * el.clientWidth;
-      idxRef.current = initial;
+      const s = getStart();
+      el.scrollLeft = s * el.clientWidth;
+      idxRef.current = s;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

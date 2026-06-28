@@ -4,6 +4,7 @@ import { fetchUserPosts } from "@/lib/follows";
 import { fetchUserShorts } from "@/lib/shorts";
 import LogoutButton from "@/components/logout-button";
 import Avatar from "@/components/avatar";
+import TabLink from "@/components/tab-link";
 import { BADGE_CATALOG, type BadgeKey } from "@/lib/profile-options";
 
 const cellGradients = [
@@ -185,39 +186,44 @@ export default async function ProfileContent() {
         </p>
       ) : (
         <div className="grid grid-cols-3 gap-[3px]">
-          {cells.map((c, i) => (
-            <Link
-              key={c.key}
-              href={c.href}
-              className="relative aspect-square overflow-hidden"
-            >
-              {c.video ? (
-                <>
-                  <video
-                    src={`${c.video}#t=0.1`}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full bg-black object-cover"
-                  />
-                  <span className="absolute right-1.5 top-1.5 text-sm text-white drop-shadow">
-                    ▶
-                  </span>
-                </>
-              ) : c.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.image} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <div
-                  className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
-                    cellGradients[i % cellGradients.length]
-                  }`}
-                >
-                  <span className="line-clamp-3">{c.text || "🛵"}</span>
-                </div>
-              )}
-            </Link>
-          ))}
+          {cells.map((c, i) => {
+            const cls = "relative aspect-square overflow-hidden";
+            const inner = c.video ? (
+              <>
+                <video
+                  src={`${c.video}#t=0.1`}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full bg-black object-cover"
+                />
+                <span className="absolute right-1.5 top-1.5 text-sm text-white drop-shadow">
+                  ▶
+                </span>
+              </>
+            ) : c.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={c.image} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div
+                className={`flex h-full w-full items-center justify-center bg-gradient-to-br p-2 text-center text-[11px] font-medium text-white ${
+                  cellGradients[i % cellGradients.length]
+                }`}
+              >
+                <span className="line-clamp-3">{c.text || "🛵"}</span>
+              </div>
+            );
+            // 숏폼 셀 → 숏폼 탭으로, 글 셀 → 글 상세로
+            return c.href === "/shorts" ? (
+              <TabLink key={c.key} index={1} className={cls}>
+                {inner}
+              </TabLink>
+            ) : (
+              <Link key={c.key} href={c.href} className={cls}>
+                {inner}
+              </Link>
+            );
+          })}
         </div>
       )}
 
