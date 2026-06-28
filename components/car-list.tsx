@@ -69,7 +69,7 @@ export default function CarList() {
               {c.ico}
               <span
                 className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white ${
-                  c.cond === "new" ? "bg-blue-600" : "bg-slate-600"
+                  c.cond === "new" ? "bg-slate-900" : "bg-slate-600"
                 }`}
               >
                 {c.cond === "new" ? "신차" : "중고"}

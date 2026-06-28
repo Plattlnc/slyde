@@ -74,7 +74,7 @@ export function getArticle(id: string): NewsArticle | undefined {
 }
 
 export const categoryColor: Record<NewsCategory, string> = {
-  정책: "bg-blue-100 text-blue-700",
+  정책: "bg-slate-200 text-slate-700",
   플랫폼: "bg-violet-100 text-violet-700",
   안전: "bg-rose-100 text-rose-700",
   일상: "bg-emerald-100 text-emerald-700",

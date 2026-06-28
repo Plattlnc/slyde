@@ -139,13 +139,13 @@ export default function DashboardPage() {
                 <div
                   key={label}
                   className={`rounded-xl py-2 text-center ${
-                    isMax ? "bg-blue-50" : ""
+                    isMax ? "bg-slate-100" : ""
                   }`}
                 >
                   <div className="text-[11.5px] text-slate-500">{label}</div>
                   <div
                     className={`mt-0.5 text-lg font-extrabold tabular-nums ${
-                      isMax ? "text-blue-600" : "text-slate-900"
+                      isMax ? "text-slate-900" : "text-slate-900"
                     }`}
                   >
                     {pVals[i]}
@@ -179,12 +179,12 @@ export default function DashboardPage() {
                       </span>
                       <span className="text-xs tabular-nums text-slate-500">
                         <b className="text-slate-900">{a.done}</b> / {a.target}건
-                        <b className="ml-1 text-blue-600">{pct}%</b>
+                        <b className="ml-1 text-slate-900">{pct}%</b>
                       </span>
                     </div>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
                       <div
-                        className="h-full rounded-full bg-blue-500"
+                        className="h-full rounded-full bg-slate-800"
                         style={{ width: `${Math.min(100, pct)}%` }}
                       />
                     </div>

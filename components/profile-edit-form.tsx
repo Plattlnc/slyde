@@ -121,7 +121,7 @@ export default function ProfileEditForm({
           <button
             onClick={save}
             disabled={busy}
-            className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-bold text-white active:scale-95 disabled:opacity-50"
+            className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-bold text-white active:scale-95 disabled:opacity-50"
           >
             {busy ? "저장 중…" : "저장"}
           </button>
@@ -186,7 +186,7 @@ export default function ProfileEditForm({
               onClick={() => setAvatar(e)}
               className={`flex h-11 w-11 items-center justify-center rounded-full text-2xl ${
                 avatar === e
-                  ? "bg-blue-100 ring-2 ring-blue-500"
+                  ? "bg-slate-200 ring-2 ring-slate-400"
                   : "bg-slate-100"
               }`}
             >
@@ -202,7 +202,7 @@ export default function ProfileEditForm({
           onChange={(e) => setName(e.target.value)}
           maxLength={12}
           placeholder="닉네임"
-          className="mb-5 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="mb-5 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
 
         {/* 닉네임 옆 이모지 */}
@@ -214,7 +214,7 @@ export default function ProfileEditForm({
               onClick={() => setNameEmoji(e)}
               className={`flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-xl ${
                 nameEmoji === e
-                  ? "bg-blue-100 ring-2 ring-blue-500"
+                  ? "bg-slate-200 ring-2 ring-slate-400"
                   : "bg-slate-100"
               } ${e === "" ? "text-xs font-semibold text-slate-500" : ""}`}
             >
@@ -230,7 +230,7 @@ export default function ProfileEditForm({
           onChange={(e) => setBio(e.target.value)}
           maxLength={60}
           placeholder="나를 한 줄로 소개해 보세요 (최대 60자)"
-          className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
         <div className="mb-5 mt-1 text-right text-xs text-slate-400">
           {bio.length}/60
@@ -245,7 +245,7 @@ export default function ProfileEditForm({
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             placeholder="새 이메일"
-            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
+            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
           />
           <button
             onClick={changeEmail}
@@ -272,7 +272,7 @@ export default function ProfileEditForm({
                 onClick={() => toggleBadge(k)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                   on
-                    ? "bg-blue-600 text-white"
+                    ? "bg-slate-900 text-white"
                     : "bg-white text-slate-600 ring-1 ring-slate-200"
                 }`}
               >

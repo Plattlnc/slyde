@@ -35,7 +35,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-full flex-col justify-center bg-slate-50 px-6 py-10">
       <div className="mb-8 text-center">
-        <div className="text-3xl font-black tracking-tight text-blue-600">
+        <div className="text-3xl font-black tracking-tight text-slate-900">
           slyde 🛵
         </div>
         <p className="mt-2 text-sm text-slate-500">라이더 슈퍼앱에 로그인</p>
@@ -48,7 +48,7 @@ export default function LoginPage() {
           placeholder="이메일"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
         <input
           type="password"
@@ -56,7 +56,7 @@ export default function LoginPage() {
           placeholder="비밀번호"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
 
         {error && (
@@ -68,7 +68,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
+          className="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
         >
           {loading ? "로그인 중..." : "로그인"}
         </button>
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
       <p className="mt-4 text-center text-sm text-slate-500">
         아직 계정이 없으세요?{" "}
-        <Link href="/signup" className="font-semibold text-blue-600">
+        <Link href="/signup" className="font-semibold text-slate-900">
           회원가입
         </Link>
       </p>

@@ -138,7 +138,7 @@ export default function MenuDrawer({
           }`}
         >
           {/* 헤더: 프로필 */}
-          <div className="flex items-center gap-3 bg-gradient-to-b from-blue-600 to-blue-500 px-5 py-5 text-white">
+          <div className="flex items-center gap-3 bg-gradient-to-b from-slate-800 to-slate-700 px-5 py-5 text-white">
             <Avatar
               url={profile?.avatarUrl}
               emoji={avatar}
@@ -147,7 +147,7 @@ export default function MenuDrawer({
             />
             <div>
               <p className="text-base font-bold">{name} 님</p>
-              <p className="text-xs text-blue-100">{company || "slyde 라이더"}</p>
+              <p className="text-xs text-slate-300">{company || "slyde 라이더"}</p>
             </div>
           </div>
 

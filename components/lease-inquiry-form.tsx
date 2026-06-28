@@ -57,19 +57,19 @@ export default function LeaseInquiryForm({
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="연락처 (예: 010-1234-5678)"
-        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
       />
       <textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         maxLength={300}
         placeholder="문의 내용 (선택)"
-        className="min-h-[72px] w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+        className="min-h-[72px] w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
       />
       <button
         type="submit"
         disabled={!phone.trim() || busy}
-        className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-40"
+        className="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-40"
       >
         {busy ? "신청 중…" : "상담 신청하기"}
       </button>

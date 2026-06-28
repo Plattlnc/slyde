@@ -106,7 +106,7 @@ export default function ResetPage() {
           <br />
           비밀번호 찾기를 다시 시도해주세요.
         </p>
-        <Link href="/forgot" className="text-sm font-semibold text-blue-600">
+        <Link href="/forgot" className="text-sm font-semibold text-slate-900">
           비밀번호 찾기
         </Link>
       </div>
@@ -122,7 +122,7 @@ export default function ResetPage() {
             router.push("/");
             router.refresh();
           }}
-          className="mt-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white active:scale-95"
+          className="mt-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-bold text-white active:scale-95"
         >
           홈으로
         </button>
@@ -133,7 +133,7 @@ export default function ResetPage() {
   return (
     <div className="flex min-h-full flex-col justify-center bg-slate-50 px-6 py-10">
       <div className="mb-6 text-center">
-        <div className="text-2xl font-black tracking-tight text-blue-600">
+        <div className="text-2xl font-black tracking-tight text-slate-900">
           새 비밀번호 설정
         </div>
       </div>
@@ -145,7 +145,7 @@ export default function ResetPage() {
           placeholder="새 비밀번호 (6자 이상)"
           value={pw}
           onChange={(e) => setPw(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
         <input
           type="password"
@@ -153,7 +153,7 @@ export default function ResetPage() {
           placeholder="새 비밀번호 확인"
           value={pw2}
           onChange={(e) => setPw2(e.target.value)}
-          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 ${
+          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none focus:border-slate-400 ${
             pw2 && pw !== pw2 ? "border-rose-400" : "border-slate-200"
           }`}
         />
@@ -165,7 +165,7 @@ export default function ResetPage() {
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
+          className="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
         >
           {busy ? "변경 중..." : "비밀번호 변경"}
         </button>

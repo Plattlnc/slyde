@@ -57,7 +57,7 @@ export default function ShopGrid() {
             <div className="relative flex aspect-square items-center justify-center bg-slate-50 text-5xl">
               {p.emoji}
               {p.badge && (
-                <span className="absolute left-2 top-2 rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                <span className="absolute left-2 top-2 rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-white">
                   {p.badge}
                 </span>
               )}

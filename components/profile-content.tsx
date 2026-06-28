@@ -35,7 +35,7 @@ export default async function ProfileContent() {
         <div className="flex w-full max-w-xs flex-col gap-2">
           <Link
             href="/login"
-            className="rounded-xl bg-blue-600 py-3 text-sm font-bold text-white active:scale-[0.98]"
+            className="rounded-xl bg-slate-900 py-3 text-sm font-bold text-white active:scale-[0.98]"
           >
             로그인
           </Link>
@@ -164,7 +164,7 @@ export default async function ProfileContent() {
       <div className="flex gap-2 px-4 py-3.5">
         <Link
           href="/dashboard"
-          className="flex-1 rounded-[10px] bg-blue-600 py-2.5 text-center text-sm font-bold text-white active:scale-[0.98]"
+          className="flex-1 rounded-[10px] bg-slate-900 py-2.5 text-center text-sm font-bold text-white active:scale-[0.98]"
         >
           📊 내 실적 보기
         </Link>

@@ -67,7 +67,7 @@ export default function PlacesMap({
         image: new kakao.maps.MarkerImage(
           "data:image/svg+xml;base64," +
             btoa(
-              `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="7" fill="#2563eb" stroke="#fff" stroke-width="3"/></svg>`,
+              `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="7" fill="#0f172a" stroke="#fff" stroke-width="3"/></svg>`,
             ),
           new kakao.maps.Size(20, 20),
         ),
@@ -210,7 +210,7 @@ export default function PlacesMap({
             {p.phone && (
               <a
                 href={`tel:${p.phone}`}
-                className="shrink-0 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
+                className="shrink-0 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white active:scale-95"
               >
                 전화
               </a>

@@ -56,7 +56,7 @@ export default function SignupPage() {
         <p className="text-sm text-slate-500">
           {email} 로 보낸 메일의 링크를 눌러 인증을 완료하세요.
         </p>
-        <Link href="/login" className="mt-2 text-sm font-semibold text-blue-600">
+        <Link href="/login" className="mt-2 text-sm font-semibold text-slate-900">
           로그인으로 가기
         </Link>
       </div>
@@ -66,7 +66,7 @@ export default function SignupPage() {
   return (
     <div className="flex min-h-full flex-col justify-center bg-slate-50 px-6 py-10">
       <div className="mb-6 text-center">
-        <div className="text-2xl font-black tracking-tight text-blue-600">
+        <div className="text-2xl font-black tracking-tight text-slate-900">
           slyde 회원가입
         </div>
         <p className="mt-1 text-sm text-slate-500">
@@ -80,7 +80,7 @@ export default function SignupPage() {
           placeholder="이름 / 닉네임"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
         <input
           type="email"
@@ -88,7 +88,7 @@ export default function SignupPage() {
           placeholder="이메일"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
         <input
           type="password"
@@ -97,7 +97,7 @@ export default function SignupPage() {
           placeholder="비밀번호 (6자 이상)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
         />
         <input
           type="password"
@@ -105,7 +105,7 @@ export default function SignupPage() {
           placeholder="비밀번호 확인"
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
-          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 ${
+          className={`w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none focus:border-slate-400 ${
             password2 && password !== password2
               ? "border-rose-400"
               : "border-slate-200"
@@ -124,7 +124,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
+          className="w-full rounded-xl bg-slate-900 py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
         >
           {loading ? "가입 중..." : "가입하기"}
         </button>
@@ -132,7 +132,7 @@ export default function SignupPage() {
 
       <p className="mt-6 text-center text-sm text-slate-500">
         이미 계정이 있으세요?{" "}
-        <Link href="/login" className="font-semibold text-blue-600">
+        <Link href="/login" className="font-semibold text-slate-900">
           로그인
         </Link>
       </p>

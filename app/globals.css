@@ -11,8 +11,8 @@
 }
 
 @theme inline {
-  --color-brand: #2563eb;
-  --color-brand-dark: #1d4ed8;
+  --color-brand: #0f172a;
+  --color-brand-dark: #1e293b;
   --font-sans: ui-sans-serif, system-ui, "Apple SD Gothic Neo", "Pretendard",
     "Malgun Gothic", "맑은 고딕", sans-serif;
 }

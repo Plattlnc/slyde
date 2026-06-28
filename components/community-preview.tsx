@@ -11,7 +11,7 @@ export default function CommunityPreview() {
     <section className="px-4 pt-5">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-bold text-slate-800">🔥 인기 커뮤니티</h2>
-        <a href="/community" className="text-xs font-medium text-blue-600">
+        <a href="/community" className="text-xs font-medium text-slate-900">
           더보기 →
         </a>
       </div>

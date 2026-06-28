@@ -35,7 +35,7 @@ export default function CartPage() {
           <p className="text-sm text-slate-500">장바구니가 비어 있어요</p>
           <Link
             href="/shop"
-            className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white active:scale-95"
+            className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-bold text-white active:scale-95"
           >
             쇼핑하러 가기
           </Link>
@@ -93,7 +93,7 @@ export default function CartPage() {
             </div>
             <button
               onClick={order}
-              className="w-full rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white active:scale-[0.98]"
+              className="w-full rounded-xl bg-slate-900 py-3.5 text-sm font-bold text-white active:scale-[0.98]"
             >
               주문하기
             </button>

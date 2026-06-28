@@ -171,7 +171,7 @@ export default function ChatThread({
             <div
               className={`max-w-[75%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-sm ${
                 m.mine
-                  ? "rounded-br-md bg-blue-600 text-white"
+                  ? "rounded-br-md bg-slate-900 text-white"
                   : "rounded-bl-md bg-white text-slate-800 ring-1 ring-slate-200"
               }`}
             >
@@ -197,7 +197,7 @@ export default function ChatThread({
         <button
           type="submit"
           disabled={!text.trim() || busy}
-          className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-40"
+          className="shrink-0 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-40"
         >
           전송
         </button>

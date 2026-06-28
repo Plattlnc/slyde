@@ -22,7 +22,7 @@ export default async function ProductPage({
           {p.category}
         </span>
         <h1 className="mt-2 text-lg font-extrabold text-slate-900">{p.name}</h1>
-        <p className="mt-1 text-xl font-extrabold text-blue-600">
+        <p className="mt-1 text-xl font-extrabold text-slate-900">
           {formatWon(p.price)}
         </p>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">{p.desc}</p>

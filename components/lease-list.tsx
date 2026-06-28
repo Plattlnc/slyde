@@ -36,7 +36,7 @@ export default function LeaseList() {
           <div
             key={p.id}
             className={`rounded-2xl border bg-white p-4 ${
-              p.best ? "border-blue-300 ring-1 ring-blue-100" : "border-slate-200"
+              p.best ? "border-slate-300 ring-1 ring-slate-200" : "border-slate-200"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ export default function LeaseList() {
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-slate-900">{p.name}</span>
                   {p.best && (
-                    <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    <span className="rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
                       BEST
                     </span>
                   )}
@@ -83,7 +83,7 @@ export default function LeaseList() {
               </Link>
               <Link
                 href={`/lease/${p.id}`}
-                className="flex-1 rounded-xl bg-blue-600 py-2.5 text-center text-sm font-bold text-white active:scale-[0.98]"
+                className="flex-1 rounded-xl bg-slate-900 py-2.5 text-center text-sm font-bold text-white active:scale-[0.98]"
               >
                 문의하기
               </Link>

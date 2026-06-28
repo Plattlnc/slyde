@@ -14,7 +14,7 @@ export default async function MessagesContent() {
           <span className="text-base font-extrabold text-slate-900">메시지</span>
           <Link
             href="/messages/new"
-            className="text-sm font-semibold text-blue-600 active:scale-95"
+            className="text-sm font-semibold text-slate-900 active:scale-95"
           >
             ✏️ 새 메시지
           </Link>
@@ -29,7 +29,7 @@ export default async function MessagesContent() {
           </p>
           <Link
             href="/messages/new"
-            className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white active:scale-95"
+            className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-bold text-white active:scale-95"
           >
             새 메시지 보내기
           </Link>
@@ -93,7 +93,7 @@ export default async function MessagesContent() {
                       <span className="truncate text-sm font-bold text-slate-900">
                         {u.name}
                       </span>
-                      <p className="truncate text-xs text-blue-500">
+                      <p className="truncate text-xs text-slate-500">
                         새로운 대화 시작하기 →
                       </p>
                     </div>

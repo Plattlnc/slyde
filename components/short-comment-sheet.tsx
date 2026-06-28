@@ -317,7 +317,7 @@ export default function ShortCommentSheet({
                               setReplyTo(null);
                             }}
                             disabled={!replyText.trim() || busy}
-                            className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-40"
+                            className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white disabled:opacity-40"
                           >
                             답글
                           </button>
@@ -332,7 +332,7 @@ export default function ShortCommentSheet({
                               return n;
                             })
                           }
-                          className="mt-2 flex items-center gap-1 text-xs font-bold text-blue-600 active:scale-90"
+                          className="mt-2 flex items-center gap-1 text-xs font-bold text-slate-900 active:scale-90"
                         >
                           <span>{isOpen ? "▴" : "▾"}</span>
                           답글 {replies.length}개
@@ -382,7 +382,7 @@ export default function ShortCommentSheet({
           <button
             type="submit"
             disabled={!text.trim() || busy}
-            className="shrink-0 rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+            className="shrink-0 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
           >
             게시
           </button>

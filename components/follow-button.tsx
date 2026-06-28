@@ -40,7 +40,7 @@ export default function FollowButton({
       className={`rounded-full font-semibold transition active:scale-95 ${pad} ${
         following
           ? "border border-slate-300 bg-white text-slate-700"
-          : "bg-blue-600 text-white"
+          : "bg-slate-900 text-white"
       }`}
     >
       {following ? "팔로잉" : "팔로우"}

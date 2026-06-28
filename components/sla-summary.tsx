@@ -7,7 +7,7 @@ export default function SlaSummary() {
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-800">오늘의 운행 요약</h2>
-          <a href="/dashboard" className="text-xs font-medium text-blue-600">
+          <a href="/dashboard" className="text-xs font-medium text-slate-900">
             전체 보기 →
           </a>
         </div>

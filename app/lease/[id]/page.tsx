@@ -22,7 +22,7 @@ export default async function LeaseDetailPage({
           <div className="flex items-center gap-1.5">
             <span className="text-lg font-bold text-slate-900">{p.name}</span>
             {p.best && (
-              <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
                 BEST
               </span>
             )}
@@ -33,7 +33,7 @@ export default async function LeaseDetailPage({
 
       <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 text-center">
         <p className="text-[11px] text-slate-400">월/일 납입금</p>
-        <p className="mt-0.5 text-2xl font-extrabold text-blue-600">
+        <p className="mt-0.5 text-2xl font-extrabold text-slate-900">
           {won(p.price)}
           <span className="text-sm font-semibold text-slate-500"> / {p.unit}~</span>
         </p>
@@ -44,7 +44,7 @@ export default async function LeaseDetailPage({
         <ul className="space-y-1.5">
           {p.tags.map((t) => (
             <li key={t} className="flex items-start gap-2 text-sm text-slate-700">
-              <span className="mt-0.5 text-blue-500">✓</span>
+              <span className="mt-0.5 text-slate-500">✓</span>
               {t}
             </li>
           ))}

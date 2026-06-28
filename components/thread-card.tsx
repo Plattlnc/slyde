@@ -119,7 +119,7 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
               {post.author}
             </span>
           )}
-          {post.verified && <span className="text-blue-500">✔️</span>}
+          {post.verified && <span className="text-slate-500">✔️</span>}
           {post.sponsored ? (
             <span className="ml-auto shrink-0 text-[11px] font-medium text-slate-400">
               광고
@@ -190,7 +190,7 @@ export default function ThreadCard({ post }: { post: FeedPost }) {
             <span className="text-xs text-slate-500">
               {post.sponsored.sponsor}
             </span>
-            <span className="text-xs font-semibold text-blue-600">
+            <span className="text-xs font-semibold text-slate-900">
               {post.sponsored.cta} →
             </span>
           </a>

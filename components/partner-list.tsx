@@ -65,7 +65,7 @@ export default function PartnerList() {
             <div
               key={p.name}
               className={`rounded-2xl border bg-white p-4 ${
-                p.feat ? "border-blue-300 ring-1 ring-blue-100" : "border-slate-200"
+                p.feat ? "border-slate-300 ring-1 ring-slate-200" : "border-slate-200"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -74,7 +74,7 @@ export default function PartnerList() {
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-slate-900">{p.name}</span>
                     {p.feat && (
-                      <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                      <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
                         대표
                       </span>
                     )}

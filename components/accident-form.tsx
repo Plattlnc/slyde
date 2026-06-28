@@ -65,7 +65,7 @@ export default function AccidentForm() {
         </p>
         <Link
           href="/"
-          className="mt-2 rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white active:scale-95"
+          className="mt-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-bold text-white active:scale-95"
         >
           확인
         </Link>
@@ -110,7 +110,7 @@ export default function AccidentForm() {
                 onClick={() => setType(t)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                   type === t
-                    ? "bg-blue-600 text-white"
+                    ? "bg-slate-900 text-white"
                     : "bg-white text-slate-600 ring-1 ring-slate-200"
                 }`}
               >
@@ -129,7 +129,7 @@ export default function AccidentForm() {
             type="datetime-local"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-400"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function AccidentForm() {
             value={place}
             onChange={(e) => setPlace(e.target.value)}
             placeholder="예) 인천 서구 청라대로 123 앞"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-400"
           />
         </div>
 
@@ -155,7 +155,7 @@ export default function AccidentForm() {
             value={detail}
             onChange={(e) => setDetail(e.target.value)}
             placeholder="어떻게 사고가 발생했는지 적어주세요"
-            className="min-h-[88px] w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+            className="min-h-[88px] w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-400"
           />
         </div>
 
@@ -219,7 +219,7 @@ export default function AccidentForm() {
                 onClick={() => setInjury(t)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                   injury === t
-                    ? "bg-blue-600 text-white"
+                    ? "bg-slate-900 text-white"
                     : "bg-white text-slate-600 ring-1 ring-slate-200"
                 }`}
               >
@@ -232,7 +232,7 @@ export default function AccidentForm() {
         <button
           onClick={submit}
           disabled={busy}
-          className="w-full rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white active:scale-[0.98] disabled:opacity-50"
+          className="w-full rounded-xl bg-slate-900 py-3.5 text-sm font-bold text-white active:scale-[0.98] disabled:opacity-50"
         >
           {busy ? "접수 중…" : "사고 접수하기"}
         </button>

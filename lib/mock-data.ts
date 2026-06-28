@@ -45,7 +45,7 @@ export const adBanners: AdBanner[] = [
     title: "라이더 전용 차량 리스",
     subtitle: "월 0원 첫 달 프로모션",
     sponsor: "올카",
-    gradient: "from-blue-500 to-indigo-600",
+    gradient: "from-slate-600 to-slate-800",
   },
   {
     id: "lightwagen",
@@ -137,7 +137,7 @@ export const feedPosts: FeedPost[] = [
     avatarEmoji: "🚗",
     time: "",
     text: "라이더 전용 차량 리스, 첫 달 0원! 신용 조회 없이 바로 상담 가능합니다. slyde 회원 추가 혜택까지 🎁",
-    image: { emoji: "🚙", gradient: "from-blue-500 to-indigo-600" },
+    image: { emoji: "🚙", gradient: "from-slate-600 to-slate-800" },
     replies: 8,
     reposts: 1,
     likes: 67,

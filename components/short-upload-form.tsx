@@ -140,7 +140,7 @@ export default function ShortUploadForm() {
           onChange={(e) => setCaption(e.target.value)}
           maxLength={300}
           placeholder="문구 추가… (선택)"
-          className="min-h-[72px] resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+          className="min-h-[72px] resize-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-400"
         />
 
         {error && (

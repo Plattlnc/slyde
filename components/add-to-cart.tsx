@@ -26,7 +26,7 @@ export default function AddToCart({ productId }: { productId: string }) {
           add(productId);
           router.push("/shop/cart");
         }}
-        className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white active:scale-[0.98]"
+        className="flex-1 rounded-xl bg-slate-900 py-3 text-sm font-bold text-white active:scale-[0.98]"
       >
         바로 구매
       </button>

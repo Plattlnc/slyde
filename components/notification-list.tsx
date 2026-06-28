@@ -51,7 +51,7 @@ export default function NotificationList({ items }: { items: Noti[] }) {
           <div
             key={n.id}
             className={`flex items-center gap-3 px-4 py-3 ${
-              n.read ? "bg-white" : "bg-blue-50/60"
+              n.read ? "bg-white" : "bg-slate-100/60"
             }`}
           >
             <Link href={`/u/${n.actorId}`} className="shrink-0">

@@ -7,7 +7,7 @@ type Period = "week" | "month" | "total";
 
 function moveTag(m: number) {
   if (m > 0) return <span className="text-[11px] font-semibold text-rose-500">▲{m}</span>;
-  if (m < 0) return <span className="text-[11px] font-semibold text-blue-500">▼{-m}</span>;
+  if (m < 0) return <span className="text-[11px] font-semibold text-slate-500">▼{-m}</span>;
   return <span className="text-[11px] text-slate-400">–</span>;
 }
 
@@ -45,7 +45,7 @@ export default function RankList() {
       </div>
 
       {/* 내 순위 */}
-      <div className="mb-4 flex items-center justify-between rounded-xl bg-blue-600 px-4 py-3 text-white">
+      <div className="mb-4 flex items-center justify-between rounded-xl bg-slate-900 px-4 py-3 text-white">
         <span className="text-sm font-semibold">내 순위 (환타)</span>
         <span className="text-base font-extrabold">
           {myIdx >= 0 ? `${myIdx + 1}위` : "순위권 밖"}
@@ -88,7 +88,7 @@ export default function RankList() {
         {list.slice(3).map((r, i) => (
           <div
             key={r.name}
-            className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-blue-50" : ""}`}
+            className={`flex items-center gap-3 px-4 py-3 ${r.me ? "bg-slate-100" : ""}`}
           >
             <div className="w-6 text-center text-sm font-bold text-slate-500">
               {i + 4}
@@ -102,7 +102,7 @@ export default function RankList() {
                   {r.name}
                 </span>
                 {r.me && (
-                  <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  <span className="rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
                     나
                   </span>
                 )}

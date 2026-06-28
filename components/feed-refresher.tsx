@@ -38,7 +38,7 @@ export default function FeedRefresher() {
           baseRef.current = null;
           router.refresh();
         }}
-        className="pointer-events-auto rounded-full bg-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg active:scale-95"
+        className="pointer-events-auto rounded-full bg-slate-900 px-4 py-1.5 text-xs font-bold text-white shadow-lg active:scale-95"
       >
         ↑ 새 글 보기
       </button>
