@@ -128,7 +128,7 @@ export default function InlineComposer({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex h-8 w-8 items-center justify-center rounded-full text-blue-600 transition active:scale-90 active:bg-blue-50"
+      className="flex h-8 w-8 items-center justify-center rounded-full text-slate-600 transition active:scale-90 active:bg-slate-100"
     >
       {children}
     </button>
@@ -227,7 +227,7 @@ export default function InlineComposer({
                 type="button"
                 onClick={() => gifRef.current?.click()}
                 aria-label="GIF"
-                className="flex h-8 items-center rounded-md border border-blue-600 px-1.5 text-[10px] font-extrabold leading-none text-blue-600 transition active:scale-90"
+                className="flex h-8 items-center rounded-md border border-slate-400 px-1.5 text-[10px] font-extrabold leading-none text-slate-600 transition active:scale-90"
               >
                 GIF
               </button>
