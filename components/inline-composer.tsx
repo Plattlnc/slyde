@@ -6,23 +6,38 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImages } from "@/lib/upload-media";
 import Avatar from "@/components/avatar";
+import {
+  ImageIcon,
+  VideoIcon,
+  EmojiIcon,
+  LocationIcon,
+} from "@/components/icons";
 import type { CurrentProfile } from "@/lib/profile";
 
 const MAX_IMAGES = 4;
+const EMOJIS = [
+  "😀", "😂", "🥹", "😎", "😭", "🥲", "🤔", "😡",
+  "🔥", "❤️", "👍", "🙏", "🎉", "✨", "💪", "😴",
+  "🛵", "🚗", "📦", "⛽", "🍜", "☕", "☔", "💦",
+];
 
-// 홈에서 바로 작성 → 게시 (사진/gif 여러 장 또는 동영상 1개)
 export default function InlineComposer({
   profile,
 }: {
   profile?: CurrentProfile | null;
 }) {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLInputElement>(null);
+  const vidRef = useRef<HTMLInputElement>(null);
+  const gifRef = useRef<HTMLInputElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [video, setVideo] = useState<File | null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const canPost =
     (text.trim().length > 0 || files.length > 0 || !!video) && !busy;
@@ -33,7 +48,6 @@ export default function InlineComposer({
     const arr = Array.from(list);
     const vid = arr.find((f) => f.type.startsWith("video"));
     if (vid) {
-      // 동영상은 1개 (사진과 배타)
       setVideo(vid);
       setFiles([]);
       return;
@@ -41,6 +55,35 @@ export default function InlineComposer({
     const imgs = arr.filter((f) => f.type.startsWith("image"));
     setVideo(null);
     setFiles((prev) => [...prev, ...imgs].slice(0, MAX_IMAGES));
+  }
+
+  function insertEmoji(e: string) {
+    setText((t) => t + e);
+    setOpen(true);
+    taRef.current?.focus();
+  }
+
+  function addLocation() {
+    if (!navigator.geolocation || locating) return;
+    setOpen(true);
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const r = await fetch(`/api/geo?lat=${latitude}&lng=${longitude}`);
+          const d = await r.json();
+          if (d.region)
+            setText((t) => (t ? t.replace(/\s*📍.*$/, "") + " " : "") + `📍 ${d.region}`);
+        } catch {
+          /* noop */
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
   }
 
   async function post() {
@@ -62,6 +105,7 @@ export default function InlineComposer({
       setText("");
       setFiles([]);
       setVideo(null);
+      setShowEmoji(false);
       setOpen(false);
       router.refresh();
     } catch (e) {
@@ -70,6 +114,25 @@ export default function InlineComposer({
       setBusy(false);
     }
   }
+
+  const ToolBtn = ({
+    onClick,
+    label,
+    children,
+  }: {
+    onClick: () => void;
+    label: string;
+    children: React.ReactNode;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-8 w-8 items-center justify-center rounded-full text-blue-600 transition active:scale-90 active:bg-blue-50"
+    >
+      {children}
+    </button>
+  );
 
   return (
     <div className="border-b border-slate-200 bg-white px-4 py-3">
@@ -82,6 +145,7 @@ export default function InlineComposer({
         />
         <div className="min-w-0 flex-1">
           <textarea
+            ref={taRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onFocus={() => setOpen(true)}
@@ -135,19 +199,72 @@ export default function InlineComposer({
             </div>
           )}
 
+          {/* 이모지 팔레트 */}
+          {showEmoji && (
+            <div className="mb-2 grid grid-cols-8 gap-1 rounded-xl bg-slate-50 p-2">
+              {EMOJIS.map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => insertEmoji(e)}
+                  className="rounded-lg py-1 text-xl active:scale-90 active:bg-slate-200"
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          )}
+
           {(open || text || files.length > 0 || video) && (
-            <div className="mt-1 flex items-center justify-between">
+            <div className="mt-1 flex items-center gap-0.5">
+              <ToolBtn onClick={() => imgRef.current?.click()} label="사진">
+                <ImageIcon size={20} />
+              </ToolBtn>
+              <ToolBtn onClick={() => vidRef.current?.click()} label="동영상">
+                <VideoIcon size={20} />
+              </ToolBtn>
               <button
-                onClick={() => fileRef.current?.click()}
-                aria-label="사진·동영상 첨부"
-                className="text-xl text-slate-500 active:scale-90"
+                type="button"
+                onClick={() => gifRef.current?.click()}
+                aria-label="GIF"
+                className="flex h-8 items-center rounded-md border border-blue-600 px-1.5 text-[10px] font-extrabold leading-none text-blue-600 transition active:scale-90"
               >
-                🖼️
+                GIF
               </button>
+              <ToolBtn onClick={() => setShowEmoji((v) => !v)} label="이모지">
+                <EmojiIcon size={20} />
+              </ToolBtn>
+              <ToolBtn onClick={addLocation} label="위치">
+                <LocationIcon size={20} />
+              </ToolBtn>
+
+              <div className="ml-auto flex items-center gap-2">
+                {locating && (
+                  <span className="text-[11px] text-slate-400">위치…</span>
+                )}
+                {text.length > 0 && (
+                  <span
+                    className={`text-[11px] tabular-nums ${
+                      text.length > 900 ? "text-rose-500" : "text-slate-400"
+                    }`}
+                  >
+                    {text.length}/1000
+                  </span>
+                )}
+                <button
+                  onClick={post}
+                  disabled={!canPost}
+                  className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-40"
+                >
+                  {busy ? "게시 중…" : "게시"}
+                </button>
+              </div>
+
+              {/* 숨김 입력 */}
               <input
-                ref={fileRef}
+                ref={imgRef}
                 type="file"
-                accept="image/*,video/*"
+                accept="image/*"
                 multiple
                 className="hidden"
                 onChange={(e) => {
@@ -155,13 +272,27 @@ export default function InlineComposer({
                   e.target.value = "";
                 }}
               />
-              <button
-                onClick={post}
-                disabled={!canPost}
-                className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold text-white transition active:scale-95 disabled:opacity-40"
-              >
-                {busy ? "게시 중…" : "게시"}
-              </button>
+              <input
+                ref={vidRef}
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={(e) => {
+                  addFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+              <input
+                ref={gifRef}
+                type="file"
+                accept="image/gif"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  addFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
             </div>
           )}
         </div>
