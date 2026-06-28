@@ -192,7 +192,7 @@ export default function MenuDrawer({
         aria-expanded={open}
         className="text-slate-700 active:scale-90"
       >
-        <MenuIcon size={24} />
+        <MenuIcon size={22} />
       </button>
       {mounted && createPortal(overlay, document.body)}
     </>
